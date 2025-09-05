@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Livewire\Farmers;
+
+use App\Models\District;
+use App\Models\Farmer;
+use App\Models\Region;
+use Filament\Actions\Concerns\InteractsWithActions;
+use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Schemas\Concerns\InteractsWithSchemas;
+use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Schemas\Schema;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
+
+class CreateFarmer extends Component implements HasActions, HasSchemas
+{
+    use InteractsWithActions;
+    use InteractsWithSchemas;
+
+    public ?array $data = [];
+
+    public function mount(): void
+    {
+        $this->form->fill();
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Select::make('region_id')
+                ->label('select region')
+                ->options(Region::all()->pluck('name','id')),
+                 Select::make('district_id')
+                 ->label('District')
+                ->options(function (callable $get) {
+                    $regionId = $get('region_id');
+                    return $regionId ? District::where('region_id', $regionId)->pluck('name', 'id') : [];
+                })
+                ->required()
+                ->searchable(),
+                TextInput::make('name'),
+                TextInput::make('contact_number')->tel(),
+                TextInput::make('farm_size')->numeric(),
+            ])
+            ->statePath('data')
+            ->model(Farmer::class);
+    }
+
+    public function create(): void
+    {
+        $data = $this->form->getState();
+        $record = Farmer::create($data);
+        $this->form->model($record)->saveRelationships();
+        Notification::make()->success()->title('Farmer created successfully');
+        $this->redirectRoute('farmers.index');
+    }
+
+    public function render(): View
+    {
+        return view('livewire.farmers.create-farmer');
+    }
+}
+
+
