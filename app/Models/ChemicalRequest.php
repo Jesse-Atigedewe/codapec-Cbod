@@ -60,5 +60,20 @@ use HasFactory;
         return ['pending', 'approved', 'dispatched'];
     }
 
+      // ✅ Total dispatched so far
+    public function getDispatchedQuantityAttribute(): float
+    {
+        return $this->dispatches->sum(
+            fn($dispatch) => collect($dispatch->drivers)->sum('quantity')
+        );
+    }
+
+    // ✅ Remaining balance
+    public function getRemainingQuantityAttribute(): float
+    {
+        return $this->quantity - $this->dispatched_quantity;
+    }
+
+    
     
 }

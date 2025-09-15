@@ -18,10 +18,7 @@ return new class extends Migration
             $table->foreignId('district_id')->constrained()->cascadeOnDelete();
             $table->foreignId('chemical_request_id')->constrained()->cascadeOnDelete();
             $table->foreignId('chemical_id')->constrained()->cascadeOnDelete();
-            $table->string('driver_name');
-            $table->string('driver_phone');
-            $table->string('driver_license')->nullable();
-            $table->string('vehicle_number');
+             $table->json('drivers'); 
 
             // shipment status
             $table->enum('status', ['pending',  'delivered'])->default('pending');

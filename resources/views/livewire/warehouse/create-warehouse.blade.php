@@ -12,7 +12,7 @@
 
                 <div class="mt-6">
                     <x-filament::button type="submit" class="w-full">
-                        Create User
+                        Create Warehouse
                     </x-filament::button>
                 </div>
             </div>

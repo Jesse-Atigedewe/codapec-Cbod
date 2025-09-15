@@ -18,6 +18,7 @@ class Dispatch extends Model
           'driver_phone',
           'driver_license',
           'vehicle_number',
+          'drivers',
           'chemical_id',
           'status',
           'dispatched_at',
@@ -34,6 +35,15 @@ class Dispatch extends Model
           'waybill',
           'notes',
      ];
+
+    protected $casts = [
+    'drivers' => 'array',
+    'dco_approved_at' => 'datetime',
+    'auditor_approved_at' => 'datetime',
+    'regional_manager_approved_at' => 'datetime',
+];
+
+
 
      public function chemicalRequest() { return $this->belongsTo(ChemicalRequest::class); }
      public function user() { return $this->belongsTo(User::class); }

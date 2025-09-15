@@ -3,6 +3,7 @@
 namespace App\Livewire\HaulageCompanies;
 
 use App\Models\HaulageCompany;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -10,8 +11,11 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
@@ -29,13 +33,11 @@ class ListHaulageCompanies extends Component implements HasActions, HasSchemas, 
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => HaulageCompany::query())
+            ->query(fn(): Builder => HaulageCompany::query())
             ->columns([
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('email')->sortable()->searchable(),
                 TextColumn::make('phone')->sortable()->searchable(),
-                TextColumn::make('address')->sortable()->searchable(),
-                TextColumn::make('contact_person')->sortable()->searchable(),
                 TextColumn::make('status')->badge()->sortable()->searchable(),
             ])
             ->filters([
@@ -46,7 +48,23 @@ class ListHaulageCompanies extends Component implements HasActions, HasSchemas, 
             ])
             ->recordActions([
                 DeleteAction::make(),
-                EditAction::make()->url(fn (HaulageCompany $record): string => route('haulage_companies.edit', $record)),
+                EditAction::make()->url(fn(HaulageCompany $record): string => route('haulage_companies.edit', $record)),
+                Action::make('view')
+                    ->label('View')
+                    ->Schema([
+                        Section::make('Company Data')
+                            ->schema([
+                                TextEntry::make('name'),
+                                TextEntry::make('email'),
+                                TextEntry::make('phone'),
+                                TextEntry::make('contact_person'),
+                                TextEntry::make('status')->badge(),
+                            ])
+                            ->columns(2),
+                    ])
+                    ->modalHeading('Company Details')
+                    ->modalSubmitAction(false) // removes footer save button
+
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -60,5 +78,3 @@ class ListHaulageCompanies extends Component implements HasActions, HasSchemas, 
         return view('livewire.haulage-companies.list-haulage-companies');
     }
 }
-
-

@@ -66,7 +66,7 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
                     ->icon(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'heroicon-o-x-circle' : 'heroicon-o-check')
                     ->requiresConfirmation()
                     ->visible(fn(ChemicalRequest $record) => Auth::user()->role === 'codapecrep' && $record->status === 'pending')
-                    ->label(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'Set Pending' : 'Approve')
+                    ->label(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'Set Pending' : 'Confirm')
                     ->action(function (ChemicalRequest $record) {
                         // toggle status
                         $record->status = $record->status === 'approved' ? 'pending' : 'approved';

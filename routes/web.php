@@ -64,7 +64,11 @@ Route::middleware(['auth'])->group(function () {
 
       
     });
-    
+    Route::middleware(['auth', 'role:admin,codapecrep,dco,regional_manager'])->group(function () {
+    Route::get('/dispatches/{record}/info', \App\Livewire\Dispatches\ViewDispatch::class)
+        ->name('dispatches.info');
+});
+
     Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/warehouses', ListWarehouse::class)->name('warehouses.list');
         // Warehouse CRUD routes for testing
@@ -122,8 +126,10 @@ Route::middleware(['auth'])->group(function () {
           Route::get('/chemical-requests', ListChemicalRequests::class)->name('rep.chemical_requests.index');
           Route::get('/chemical-requests/{record}/edit', EditChemicalRequest::class)->name('rep.chemical_requests.edit');
           Route::get('/codapec/dispatches', \App\Livewire\Dispatches\ListDispatches::class)->name('dispatches.index');
+            //Dispatches
           Route::get('/codapec/dispatches/create', \App\Livewire\Dispatches\CreateDispatches::class)->name('dispatches.create');
           Route::get('/codapec/dispatches/{record}/edit', \App\Livewire\Dispatches\EditDispatch::class)->name('dispatches.edit');
+
         });
 
     Route::middleware(['auth', 'role:dco'])->group(function () {
@@ -134,7 +140,6 @@ Route::middleware(['auth'])->group(function () {
           Route::get('/distribute/farmers', \App\Livewire\DcoDistributions\DistributeToFarmers::class)->name('dco.distribute.farmers');
           Route::get('/distribute/farmer-groups', \App\Livewire\DcoDistributions\DistributeToFarmerGroups::class)->name('dco.distribute.farmer_groups');
           Route::get('/distribute/cooperatives', \App\Livewire\DcoDistributions\DistributeToCooperatives::class)->name('dco.distribute.cooperatives');
-        
           Route::get('/dco/distributions', \App\Livewire\DcoDistribution\ListDcoDistributions::class)->name('dco.distributions.index');
 
         });
