@@ -109,47 +109,57 @@ class ViewDispatch extends Component
     /**
      * Toggle Regional Manager approval.
      */
-    public function toggleRm(): void
-    {
-        if (Auth::user()->role !== 'regional_manager') {
-            return;
-        }
-
-        if (!$this->dispatch->auditor_approved || collect($this->dispatch->drivers)->contains(fn($d) => empty($d['dco_approved_trip']))) {
-            Notification::make()
-                ->warning()
-                ->title("Cannot approve")
-                ->body("Auditor approval and all DCO-approved trips required.")
-                ->send();
-            return;
-        }
-
-        $this->dispatch->regional_manager_approved = !$this->dispatch->regional_manager_approved;
-        $this->dispatch->regional_manager_approved_by = $this->dispatch->regional_manager_approved ? Auth::id() : null;
-        $this->dispatch->regional_manager_approved_at = $this->dispatch->regional_manager_approved ? now() : null;
-        $this->dispatch->save();
 
         // Update received chemicals if approved
-        if ($this->dispatch->regional_manager_approved) {
-            $totalQuantity = collect($this->dispatch->drivers)->sum('quantity');
-            \App\Models\DcoReceivedChemicals::updateOrCreate(
-                ['dispatch_id' => $this->dispatch->id],
-                [
-                    'user_id' => Auth::id(),
-                    'district_id' => $this->dispatch->district_id,
-                    'region_id' => $this->dispatch->region_id,
-                    'quantity_received' => $totalQuantity,
-                    'quantity_distributed' => 0,
-                    'received_at' => now(),
-                ]
-            );
-        }
-
-        Notification::make()
-            ->success()
-            ->title($this->dispatch->regional_manager_approved ? "RM approved dispatch" : "RM approval revoked")
-            ->send();
+ public function toggleRm(): void
+{
+    if (Auth::user()->role !== 'regional_manager') {
+        return;
     }
+
+    if (!$this->dispatch->auditor_approved || collect($this->dispatch->drivers)->contains(fn($d) => empty($d['trip_complete']))) {
+        Notification::make()
+            ->warning()
+            ->title("Cannot approve")
+            ->body("Auditor approval and all trips must be completed first.")
+            ->send();
+        return;
+    }
+
+    $this->dispatch->regional_manager_approved = !$this->dispatch->regional_manager_approved;
+    $this->dispatch->regional_manager_approved_by = $this->dispatch->regional_manager_approved ? Auth::id() : null;
+    $this->dispatch->regional_manager_approved_at = $this->dispatch->regional_manager_approved ? now() : null;
+
+    // ✅ If approved, update stocks & mark dispatch as delivered
+    if ($this->dispatch->regional_manager_approved) {
+        $totalQuantity = collect($this->dispatch->drivers)->sum('quantity');
+
+        \App\Models\DcoReceivedChemicals::updateOrCreate(
+            ['dispatch_id' => $this->dispatch->id],
+            [
+                'user_id' => Auth::id(),
+                'district_id' => $this->dispatch->district_id,
+                // 'region_id' => $this->dispatch->region_id,
+                'quantity_received' => $totalQuantity,
+                'quantity_distributed' => 0,
+                'received_at' => now(),
+            ]
+        );
+
+        // ✅ Mark dispatch as delivered
+        $this->dispatch->status = 'delivered';
+        $this->dispatch->delivered_at = now();
+    }
+
+    $this->dispatch->save();
+
+    Notification::make()
+        ->success()
+        ->title($this->dispatch->regional_manager_approved ? "RM approved dispatch & marked delivered" : "RM approval revoked")
+        ->send();
+}
+
+
 
     public function render()
     {

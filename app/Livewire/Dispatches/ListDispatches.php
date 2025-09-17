@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Dispatches;
 
-use App\Models\DcoReceivedChemicals;
 use App\Models\Dispatch;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -12,27 +11,17 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\ToggleButtons;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\RepeatableEntry;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use GuzzleHttp\Promise\Create;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -44,8 +33,30 @@ class ListDispatches extends Component implements HasActions, HasSchemas, HasTab
 
     public function table(Table $table): Table
     {
+        $user = Auth::user();
+
+    $query = Dispatch::query()
+        ->with(['chemicalRequest', 'user', 'region', 'district'])
+        ->orderByDesc('created_at');
+
+    if($user->role==='codapecrep'){
+        $query->where('user_id',$user->id);
+    }elseif($user->role === 'dco') {
+        // DCO: filter to their district (and region for extra safety)
+        $query->where('district_id', $user->district_id)
+              ->where('region_id', $user->region_id);
+
+    } elseif ( $user->role === 'regional_manager' || $user->role === 'auditor') {
+        // Regional Manager: filter to their region
+        $query->where('region_id', $user->region_id);
+    }else {
+        // Any other role → return empty result
+        $query->whereRaw('1 = 0'); // Always false condition
+    }
+
+
         return $table
-            ->query(fn(): Builder => Dispatch::query()->with(['chemicalRequest', 'user', 'region', 'district']))
+            ->query(fn (): Builder => $query)
             ->columns([
                 TextColumn::make('chemicalRequest.quantity')->label('Qty'),
                 TextColumn::make('chemicalRequest.user.name')
@@ -62,6 +73,14 @@ class ListDispatches extends Component implements HasActions, HasSchemas, HasTab
                 CreateAction::make()
                     ->visible(fn() => Auth::user()->role === 'codapecrep')
                     ->url(fn(): string => route('dispatches.create')),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+        ->label('Status')
+        ->options([
+            'pending' => 'Pending',
+            'delivered' => 'Delivered',
+        ]),
             ])
             ->recordActions([
                 EditAction::make()

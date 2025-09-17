@@ -10,8 +10,12 @@ class Chemical extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-    ];
+    'name',
+    'type',
+    'state',
+    'unit',
+];
+
 }
 
 

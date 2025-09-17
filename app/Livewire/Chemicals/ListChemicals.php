@@ -26,26 +26,45 @@ class ListChemicals extends Component implements HasActions, HasSchemas, HasTabl
     use InteractsWithTable;
     use InteractsWithSchemas;
 
-    public function table(Table $table): Table
-    {
-        return $table
-            ->query(fn (): Builder => Chemical::query())
-            ->columns([
-                TextColumn::make('name')->sortable()->searchable(),
-            ])
-            ->headerActions([
-                CreateAction::make()->url(fn(): string => route('chemicals.create')),
-            ])
-            ->recordActions([
-                DeleteAction::make(),
-                EditAction::make()->url(fn (Chemical $record): string => route('chemicals.edit', $record)),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
-            ]);
-    }
+  public function table(Table $table): Table
+{
+    return $table
+        ->query(fn (): Builder => Chemical::query())
+        ->columns([
+            TextColumn::make('name')
+                ->label('Chemical Name')
+                ->sortable()
+                ->searchable(),
+
+            TextColumn::make('type')
+                ->label('Type')
+                ->sortable()
+                ->searchable(),
+
+            TextColumn::make('state')
+                ->label('State')
+                ->sortable()
+                ->searchable(),
+
+            TextColumn::make('unit')
+                ->label('Unit')
+                ->sortable()
+                ->searchable(),
+        ])
+        ->headerActions([
+            CreateAction::make()->url(fn(): string => route('chemicals.create')),
+        ])
+        ->recordActions([
+            DeleteAction::make(),
+            EditAction::make()->url(fn (Chemical $record): string => route('chemicals.edit', $record)),
+        ])
+        ->toolbarActions([
+            BulkActionGroup::make([
+                DeleteBulkAction::make(),
+            ]),
+        ]);
+}
+
 
     public function render(): View
     {

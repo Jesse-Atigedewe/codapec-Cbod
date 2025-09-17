@@ -29,7 +29,7 @@ class ListWarehouse extends Component implements HasActions, HasSchemas, HasTabl
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn(): Builder => Warehouse::query())
+            ->query(fn(): Builder => Warehouse::query()->orderByDesc('created_at'))
             ->columns([
                 TextColumn::make('user.name')->label('Codapec Rep')->sortable()->searchable(),
                 TextColumn::make('name')->label('Warehouse Name')->sortable()->searchable(),

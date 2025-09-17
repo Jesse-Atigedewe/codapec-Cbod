@@ -31,8 +31,8 @@ class ListDistricts extends Component implements HasActions, HasSchemas, HasTabl
         return $table
             ->query(fn (): Builder => District::query())
             ->columns([
-                TextColumn::make('name')->sortable()->searchable(),
-                TextColumn::make('region.name')->searchable()
+                TextColumn::make('name')->searchable(),
+                TextColumn::make('region.name')->searchable()->sortable()
             ])
             ->filters([
                 //

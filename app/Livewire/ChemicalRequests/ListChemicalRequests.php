@@ -11,6 +11,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
@@ -21,6 +22,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Models\WarehouseStock;
 
 class ListChemicalRequests extends Component implements HasActions, HasSchemas, HasTable
 {
@@ -36,13 +38,13 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
 
             if ($user->role === 'admin') {
                 // Admins see everything
-                return ChemicalRequest::query();
+                return ChemicalRequest::query()->orderByDesc('created_at');
             }
 
             if ($user->role === 'codapecrep') {
                 // CODAPEC reps only see requests linked to their warehouse
                 return ChemicalRequest::query()
-                    ->where('warehouse_rep_id', $user->id);
+                    ->where('warehouse_rep_id', $user->id)->orderByDesc('created_at');
             }
             // Default fallback (no access or limited)
             return ChemicalRequest::query()->whereRaw('1 = 0'); // returns empty
@@ -61,19 +63,65 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
             ->recordActions([
                 DeleteAction::make()->visible(fn() => Auth::user()->role === 'admin'),
                 EditAction::make()->visible(fn() => Auth::user()->role === 'admin'),
-                Action::make('Toggle Approval')
-                    ->color(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'danger' : 'success')
-                    ->icon(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'heroicon-o-x-circle' : 'heroicon-o-check')
-                    ->requiresConfirmation()
-                    ->visible(fn(ChemicalRequest $record) => Auth::user()->role === 'codapecrep' && $record->status === 'pending')
-                    ->label(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'Set Pending' : 'Confirm')
-                    ->action(function (ChemicalRequest $record) {
-                        // toggle status
-                        $record->status = $record->status === 'approved' ? 'pending' : 'approved';
-                        $record->save();
-                    })
-                    ->successNotificationTitle(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'Request Approved' : 'Request Set to Pending'),
-            ])
+
+
+Action::make('Toggle Approval')
+    ->color(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'danger' : 'success')
+    ->icon(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'heroicon-o-x-circle' : 'heroicon-o-check')
+    ->requiresConfirmation()
+    ->visible(fn(ChemicalRequest $record) => Auth::user()->role === 'codapecrep' && $record->status === 'pending')
+    ->label(fn(ChemicalRequest $record) => $record->status === 'approved' ? 'Set Pending' : 'Confirm')
+    ->action(function (ChemicalRequest $record) {
+        if ($record->status === 'pending') {
+            // Find warehouse stock for the chemical belonging to the rep
+            $stock = WarehouseStock::where('user_id', Auth::id())
+                ->where('chemical_id', $record->chemical_id)
+                ->where('warehouse_id', $record->warehouse_id)
+                ->first();
+
+            if (! $stock) {
+                Notification::make()
+                    ->danger()
+                    ->title('Stock not found')
+                    ->body('No stock available in your warehouse for this chemical.')
+                    ->send();
+                return;
+            }
+
+            if ($stock->quantity_available < $record->quantity) {
+                Notification::make()
+                    ->danger()
+                    ->title('Insufficient Stock')
+                    ->body('You do not have enough stock to approve this request.')
+                    ->send();
+                return;
+            }
+
+            // Deduct stock
+            $stock->decrement('quantity_available', $record->quantity);
+
+            // Approve request
+            $record->status = 'approved';
+            $record->save();
+
+            Notification::make()
+                ->success()
+                ->title('Request Approved')
+                ->body('The request has been approved and stock updated.')
+                ->send();
+        } else {
+            // Toggle back to pending (no stock rollback here, unless you want to add it)
+            $record->status = 'pending';
+            $record->save();
+
+            Notification::make()
+                ->success()
+                ->title('Request Set Back to Pending')
+                ->send();
+        }
+    }),
+
+                    ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()->visible(fn() => Auth::user()->role === 'admin'),

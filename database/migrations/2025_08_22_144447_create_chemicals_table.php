@@ -12,12 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('chemicals', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('type')->nullable(); // e.g. insecticide, fungicide
-            $table->string('unit')->default('liters'); // liters, kg, bottles
-            $table->timestamps();
-        });
+    $table->id();
+    $table->string('name');
+    // usage type: insecticide, fungicide, herbicide, fertilizer
+    $table->enum('type', ['insecticide', 'fungicide', 'herbicide', 'fertilizer'])->nullable();
+    // physical state: granular, solid, liquid, powder
+    $table->enum('state', ['granular', 'solid', 'liquid', 'powder'])->nullable();
+    // unit of measure
+    $table->enum('unit', ['liters', 'kg', 'bottles'])->default('liters');
+    $table->timestamps();
+});
+
     }
 
     /**

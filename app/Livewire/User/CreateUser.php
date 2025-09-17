@@ -54,6 +54,7 @@ class CreateUser extends Component implements HasActions, HasSchemas
                     return $regionId ? District::where('region_id', $regionId)->pluck('name', 'id') : [];
                 })
                 ->required()
+                ->preload()
                 ->searchable(),
 
                 Select::make('role')->required()->label('Role')->options([

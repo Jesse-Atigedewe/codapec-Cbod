@@ -64,7 +64,7 @@ Route::middleware(['auth'])->group(function () {
 
       
     });
-    Route::middleware(['auth', 'role:admin,codapecrep,dco,regional_manager'])->group(function () {
+    Route::middleware(['auth', 'role:admin,codapecrep,dco,regional_manager,auditor'])->group(function () {
     Route::get('/dispatches/{record}/info', \App\Livewire\Dispatches\ViewDispatch::class)
         ->name('dispatches.info');
 });

@@ -35,7 +35,7 @@ class ListUsers extends Component implements HasActions, HasSchemas, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => User::query())
+            ->query(fn (): Builder => User::query()->orderByDesc('created_at'))
             ->columns([
                 TextColumn::make('name')->sortable()->searchable(),
                 TextColumn::make('email')->sortable()->searchable(),

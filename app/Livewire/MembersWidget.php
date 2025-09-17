@@ -11,28 +11,25 @@ class MembersWidget extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
+        $farmerscount = Farmer::count();
+        $farmergroupscount = Farmer::count();
+        $cooperativescount = Cooperative::count();
         return [
-            $farmerscount = Farmer::count(),
-            $farmergroupscount = Farmer::count(),
-            $cooperativescount = Cooperative::count(),
             Stat::make('Total Farmers',$farmerscount)
                 ->description('Total Farmers')
                 ->descriptionIcon('heroicon-o-user-group')
                 ->color('primary')
-                ->icon('heroicon-o-users')
-                ->value($farmerscount),
+                ->icon('heroicon-o-users'),
             Stat::make('Total Farmer Groups',$farmergroupscount)
                 ->description('Total Farmer Groups')
                 ->descriptionIcon('heroicon-o-user-group')
                 ->color('primary')
-                ->icon('heroicon-o-users')
-                ->value($farmergroupscount),
+                ->icon('heroicon-o-users'),
             Stat::make('Total Cooperatives',$cooperativescount)
                 ->description('Total Cooperatives')
                 ->descriptionIcon('heroicon-o-user-group')
                 ->color('primary')
-                ->icon('heroicon-o-users')
-                ->value($cooperativescount),
+                ->icon('heroicon-o-users'),
         ];
     }
 }

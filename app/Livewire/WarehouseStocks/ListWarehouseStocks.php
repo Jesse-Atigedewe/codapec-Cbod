@@ -47,6 +47,7 @@ class ListWarehouseStocks extends Component implements HasActions, HasSchemas, H
             ])
             ->headerActions([
                 CreateAction::make()->url(fn(): string => route('warehouse_stocks.create')),
+                // EditAction::make()
             ]);
     }
 

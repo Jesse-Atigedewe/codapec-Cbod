@@ -36,8 +36,9 @@ class EditWarehouse extends Component implements HasActions, HasSchemas
         return $schema
             ->schema([
                 Select::make('user_id')
-                    ->label('Owner')
-                    ->relationship('user', 'name')
+                    ->label('codapec rep')
+                     ->options(User::where('role', 'codapecrep')->pluck('name', 'id'))
+
                     ->required(),
 
                 TextInput::make('name')
