@@ -6,58 +6,78 @@ use Livewire\Component;
 use App\Models\Dispatch;
 use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class ViewDispatch extends Component
 {
     public ?Dispatch $dispatch;
+    // when viewing all dispatches for a chemical request
+    public ?EloquentCollection $dispatches = null;
 
     /**
      * Mount the component with a specific dispatch record.
      */
-    public function mount( $record= null): void
+    public function mount($record = null, $byChemicalRequest = false): void
     {
-        // Load dispatch with related chemicalRequest and drivers
-        $this->dispatch = Dispatch::with(['chemicalRequest'])
+        if ($byChemicalRequest) {
+            // $record is expected to be chemical_request_id
+            $this->dispatches = Dispatch::with(['chemical', 'chemicalRequest'])
+                ->where('chemical_request_id', $record)
+                ->get();
+
+            // no legacy drivers JSON: use concrete dispatch columns
+
+            // keep $dispatch null when listing multiple
+            $this->dispatch = null;
+            return;
+        }
+
+        // single dispatch view
+        $this->dispatch = Dispatch::with(['chemicalRequest', 'chemical'])
             ->findOrFail($record);
 
-        // Ensure drivers array exists
-        $this->dispatch->drivers = $this->dispatch->drivers ?? [];
+    // no legacy drivers JSON: single-driver dispatch columns are used
     }
 
     /**
      * Toggle trip_complete for a specific driver.
      */
-    public function toggleDriver(int $driverIndex): void
+    public function toggleDriver(?int $dispatchId = null): void
     {
-        $drivers = $this->dispatch->drivers;
-
-        if (!array_key_exists($driverIndex, $drivers)) {
+        $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
+        if (!$dispatch) {
             return;
         }
 
-        $drivers[$driverIndex]['trip_complete'] = !($drivers[$driverIndex]['trip_complete'] ?? false);
+        // toggle concrete trip_complete column (single-driver per dispatch)
+        $dispatch->trip_complete = !($dispatch->trip_complete ?? false);
+        $dispatch->save();
 
-        $this->dispatch->drivers = $drivers;
-        $this->dispatch->save();
+    $driverName = $dispatch->driver_name ?? 'Driver';
 
         Notification::make()
             ->success()
             ->title("Driver trip status updated")
-            ->body("Driver {$drivers[$driverIndex]['driver_name']} trip is now " . ($drivers[$driverIndex]['trip_complete'] ? 'Complete' : 'Pending'))
+            ->body("{$driverName} trip is now " . ($dispatch->trip_complete ? 'Complete' : 'Pending'))
             ->send();
     }
 
     /**
      * Toggle DCO approval for the dispatch.
      */
-    public function toggleDco(): void
+    public function toggleDco(?int $dispatchId = null): void
     {
         if (Auth::user()->role !== 'dco') {
             return;
         }
 
-        // Only allow if all trips complete
-        if (!collect($this->dispatch->drivers)->every(fn($d) => !empty($d['trip_complete']))) {
+        $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
+        if (!$dispatch) {
+            return;
+        }
+
+        // Only allow if the trip for this dispatch is complete
+        if (empty($dispatch->trip_complete)) {
             Notification::make()
                 ->warning()
                 ->title("Cannot approve")
@@ -66,27 +86,32 @@ class ViewDispatch extends Component
             return;
         }
 
-        $this->dispatch->dco_approved = !$this->dispatch->dco_approved;
-        $this->dispatch->dco_approved_by = $this->dispatch->dco_approved ? Auth::id() : null;
-        $this->dispatch->dco_approved_at = $this->dispatch->dco_approved ? now() : null;
-        $this->dispatch->save();
+        $dispatch->dco_approved = !$dispatch->dco_approved;
+        $dispatch->dco_approved_by = $dispatch->dco_approved ? Auth::id() : null;
+        $dispatch->dco_approved_at = $dispatch->dco_approved ? now() : null;
+        $dispatch->save();
 
         Notification::make()
             ->success()
-            ->title($this->dispatch->dco_approved ? "DCO approved dispatch" : "DCO approval revoked")
+            ->title($dispatch->dco_approved ? "DCO approved dispatch" : "DCO approval revoked")
             ->send();
     }
 
     /**
      * Toggle Auditor approval.
      */
-    public function toggleAuditor(): void
+    public function toggleAuditor(?int $dispatchId = null): void
     {
         if (Auth::user()->role !== 'auditor') {
             return;
         }
 
-        if (!$this->dispatch->dco_approved) {
+        $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
+        if (!$dispatch) {
+            return;
+        }
+
+        if (!$dispatch->dco_approved) {
             Notification::make()
                 ->warning()
                 ->title("Cannot approve")
@@ -95,14 +120,14 @@ class ViewDispatch extends Component
             return;
         }
 
-        $this->dispatch->auditor_approved = !$this->dispatch->auditor_approved;
-        $this->dispatch->auditor_approved_by = $this->dispatch->auditor_approved ? Auth::id() : null;
-        $this->dispatch->auditor_approved_at = $this->dispatch->auditor_approved ? now() : null;
-        $this->dispatch->save();
+        $dispatch->auditor_approved = !$dispatch->auditor_approved;
+        $dispatch->auditor_approved_by = $dispatch->auditor_approved ? Auth::id() : null;
+        $dispatch->auditor_approved_at = $dispatch->auditor_approved ? now() : null;
+        $dispatch->save();
 
         Notification::make()
             ->success()
-            ->title($this->dispatch->auditor_approved ? "Auditor approved" : "Auditor approval revoked")
+            ->title($dispatch->auditor_approved ? "Auditor approved" : "Auditor approval revoked")
             ->send();
     }
 
@@ -111,61 +136,67 @@ class ViewDispatch extends Component
      */
 
         // Update received chemicals if approved
- public function toggleRm(): void
-{
-    if (Auth::user()->role !== 'regional_manager') {
-        return;
-    }
+    public function toggleRm(?int $dispatchId = null): void
+    {
+        if (Auth::user()->role !== 'regional_manager') {
+            return;
+        }
 
-    if (!$this->dispatch->auditor_approved || collect($this->dispatch->drivers)->contains(fn($d) => empty($d['trip_complete']))) {
+        $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
+        if (!$dispatch) {
+            return;
+        }
+
+        if (!$dispatch->auditor_approved || empty($dispatch->trip_complete)) {
+            Notification::make()
+                ->warning()
+                ->title("Cannot approve")
+                ->body("Auditor approval and all trips must be completed first.")
+                ->send();
+            return;
+        }
+
+        $dispatch->regional_manager_approved = !$dispatch->regional_manager_approved;
+        $dispatch->regional_manager_approved_by = $dispatch->regional_manager_approved ? Auth::id() : null;
+        $dispatch->regional_manager_approved_at = $dispatch->regional_manager_approved ? now() : null;
+
+        // ✅ If approved, update stocks & mark dispatch as delivered
+        if ($dispatch->regional_manager_approved) {
+            // For single-driver dispatches, the dispatch->quantity represents the dispatched amount
+            $totalQuantity = $dispatch->quantity ?? 0;
+
+            \App\Models\DcoReceivedChemicals::updateOrCreate(
+                ['dispatch_id' => $dispatch->id],
+                [
+                    'user_id' => Auth::id(),
+                    'district_id' => $dispatch->district_id,
+                    // 'region_id' => $dispatch->region_id,
+                    'quantity_received' => $totalQuantity,
+                    'quantity_distributed' => 0,
+                    'received_at' => now(),
+                ]
+            );
+
+            // ✅ Mark dispatch as delivered
+            $dispatch->status = 'delivered';
+            $dispatch->delivered_at = now();
+        }
+
+        $dispatch->save();
+
         Notification::make()
-            ->warning()
-            ->title("Cannot approve")
-            ->body("Auditor approval and all trips must be completed first.")
+            ->success()
+            ->title($dispatch->regional_manager_approved ? "RM approved dispatch & marked delivered" : "RM approval revoked")
             ->send();
-        return;
     }
-
-    $this->dispatch->regional_manager_approved = !$this->dispatch->regional_manager_approved;
-    $this->dispatch->regional_manager_approved_by = $this->dispatch->regional_manager_approved ? Auth::id() : null;
-    $this->dispatch->regional_manager_approved_at = $this->dispatch->regional_manager_approved ? now() : null;
-
-    // ✅ If approved, update stocks & mark dispatch as delivered
-    if ($this->dispatch->regional_manager_approved) {
-        $totalQuantity = collect($this->dispatch->drivers)->sum('quantity');
-
-        \App\Models\DcoReceivedChemicals::updateOrCreate(
-            ['dispatch_id' => $this->dispatch->id],
-            [
-                'user_id' => Auth::id(),
-                'district_id' => $this->dispatch->district_id,
-                // 'region_id' => $this->dispatch->region_id,
-                'quantity_received' => $totalQuantity,
-                'quantity_distributed' => 0,
-                'received_at' => now(),
-            ]
-        );
-
-        // ✅ Mark dispatch as delivered
-        $this->dispatch->status = 'delivered';
-        $this->dispatch->delivered_at = now();
-    }
-
-    $this->dispatch->save();
-
-    Notification::make()
-        ->success()
-        ->title($this->dispatch->regional_manager_approved ? "RM approved dispatch & marked delivered" : "RM approval revoked")
-        ->send();
-}
 
 
 
     public function render()
     {
-        
         return view('livewire.dispatches.view-dispatch', [
             'dispatch' => $this->dispatch,
+            'dispatches' => $this->dispatches,
         ]);
     }
 }

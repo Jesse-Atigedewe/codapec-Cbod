@@ -10,11 +10,11 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+// Repeater removed: using single driver fields instead
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -99,44 +99,33 @@ class CreateDispatches extends Component implements HasActions, HasSchemas
 
 
 
+                // Single driver fields (each create creates one Dispatch)
+                TextInput::make('driver_name')
+                    ->label('Driver Name')
+                    ->required()
+                    ->maxLength(255),
 
-                // Drivers & Vehicles - stored in JSON
-                Repeater::make('drivers')
-                    ->label('Drivers & Vehicles')
-                    ->schema([
-                        TextInput::make('driver_name')
-                            ->label('Driver Name')
-                            ->required()
-                            ->maxLength(255),
+                TextInput::make('driver_phone')
+                    ->label('Driver Phone')
+                    ->required()
+                    ->tel()
+                    ->maxLength(20),
 
-                        TextInput::make('driver_phone')
-                            ->label('Driver Phone')
-                            ->required()
-                            ->tel()
-                            ->maxLength(20),
+                TextInput::make('driver_license')
+                    ->label('Driver License')
+                    ->nullable()
+                    ->maxLength(50),
 
-                        TextInput::make('driver_license')
-                            ->label('Driver License')
-                            ->nullable()
-                            ->maxLength(50),
+                TextInput::make('vehicle_number')
+                    ->label('Vehicle Number')
+                    ->required()
+                    ->maxLength(50),
 
-                        TextInput::make('vehicle_number')
-                            ->label('Vehicle Number')
-                            ->required()
-                            ->maxLength(50),
-
-                        TextInput::make('quantity')
-                            ->label('Quantity')
-                            ->numeric()
-                            ->required(),
-
-                        Hidden::make('trip_complete')
-                            ->label('Trip Complete')
-                            ->dehydrated()
-                            ->default(false),
-                    ])
-                    ->columns(2)
+                TextInput::make('quantity')
+                    ->label('Quantity')
+                    ->numeric()
                     ->required(),
+                Hidden::make('trip_complete')->default(false),
             ])
             ->statePath('data')
             ->model(Dispatch::class);
@@ -149,13 +138,18 @@ public function create(): void
 
     $chemicalRequest = ChemicalRequest::findOrFail($data['chemical_request_id']);
 
-    // Total already dispatched from previous records
+    // Total already dispatched from previous records - prefer `quantity` column when present
     $alreadyDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)
         ->get()
-        ->sum(fn($dispatch) => collect($dispatch->drivers)->sum('quantity'));
+        ->sum(function ($dispatch) {
+            if (isset($dispatch->quantity) && $dispatch->quantity !== null) {
+                return (int) $dispatch->quantity;
+            }
+            return collect($dispatch->drivers ?? [])->sum('quantity');
+        });
 
-    // Sum of new drivers quantities
-    $newQuantity = collect($data['drivers'])->sum('quantity');
+    // For single-dispatch per submit: new quantity is the provided quantity field
+    $newQuantity = (int) ($data['quantity'] ?? 0);
 
     // Validate against total allowed
     if (($alreadyDispatched + $newQuantity) > $chemicalRequest->quantity) {
@@ -166,16 +160,31 @@ public function create(): void
         return;
     }
 
-    // ✅ Extract drivers separately so they don’t get overridden
-    $drivers = $data['drivers'] ?? [];
-    unset($data['drivers']);
+    // Build drivers array from single fields so it remains compatible with existing UI
+    $drivers = [[
+        'driver_name' => $data['driver_name'] ?? null,
+        'driver_phone' => $data['driver_phone'] ?? null,
+        'driver_license' => $data['driver_license'] ?? null,
+        'vehicle_number' => $data['vehicle_number'] ?? null,
+        'quantity' => $newQuantity,
+        'trip_complete' => $data['trip_complete'] ?? false,
+    ]];
 
-    // ✅ Create the dispatch record
+    // Remove driver fields from $data so model mass assignment matches
+    unset($data['driver_name'], $data['driver_phone'], $data['driver_license'], $data['vehicle_number'], $data['quantity'], $data['trip_complete']);
+
+    // ✅ Create the dispatch record (save both concrete fields and legacy drivers JSON)
     $record = Dispatch::create([
         ...$data, // chemical_request_id, region_id, district_id
         'chemical_id' => $chemicalRequest->chemical_id,
         'user_id'     => Auth::id(),
-        'drivers'     => $drivers, // array -> auto-cast to JSON
+        'driver_name' => $drivers[0]['driver_name'],
+        'driver_phone' => $drivers[0]['driver_phone'],
+        'driver_license' => $drivers[0]['driver_license'],
+        'vehicle_number' => $drivers[0]['vehicle_number'],
+        'quantity' => $drivers[0]['quantity'],
+        'trip_complete' => $drivers[0]['trip_complete'],
+        'drivers'     => $drivers, // array -> auto-cast to JSON (legacy)
     ]);
 
     $this->form->model($record)->saveRelationships();

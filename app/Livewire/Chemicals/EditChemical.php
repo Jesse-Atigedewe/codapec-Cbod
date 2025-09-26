@@ -33,18 +33,14 @@ class EditChemical extends Component implements HasActions, HasSchemas
     return $schema
         ->components([
             TextInput::make('name')
-                ->label('Chemical Name')
+                ->label('Item Name')
                 ->required()
                 ->maxLength(255),
 
-            Select::make('type')
-                ->label('Chemical Type')
-                ->options([
-                    'insecticide' => 'Insecticide',
-                    'fungicide'   => 'Fungicide',
-                    'herbicide'   => 'Herbicide',
-                    'fertilizer'  => 'Fertilizer',
-                ])
+            Select::make('type_id')
+                ->label('Item Type')
+                ->options(fn() => \App\Models\ChemicalType::pluck('name', 'id')->toArray())
+                ->searchable()
                 ->required(),
 
             Select::make('state')
@@ -55,7 +51,15 @@ class EditChemical extends Component implements HasActions, HasSchemas
                     'liquid'   => 'Liquid',
                     'powder'   => 'Powder',
                 ])
-                ->required(),
+                ->required()
+                ->reactive()
+                ->afterStateUpdated(function ($state, $set) {
+                    if (in_array($state, ['granular', 'solid', 'powder'])) {
+                        $set('unit', 'kg');
+                    } elseif ($state === 'liquid') {
+                        $set('unit', 'liters');
+                    }
+                }),
 
             Select::make('unit')
                 ->label('Unit of Measure')
@@ -65,7 +69,8 @@ class EditChemical extends Component implements HasActions, HasSchemas
                     'bottles' => 'Bottles',
                 ])
                 ->default('liters')
-                ->required(),
+                ->required()
+                ->reactive(),
         ])
         ->statePath('data')
         ->model($this->record);

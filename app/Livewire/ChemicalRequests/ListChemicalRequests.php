@@ -74,10 +74,15 @@ Action::make('Toggle Approval')
     ->action(function (ChemicalRequest $record) {
         if ($record->status === 'pending') {
             // Find warehouse stock for the chemical belonging to the rep
-            $stock = WarehouseStock::where('user_id', Auth::id())
-                ->where('chemical_id', $record->chemical_id)
-                ->where('warehouse_id', $record->warehouse_id)
-                ->first();
+            $stock = WarehouseStock::with('warehouse')
+    ->where('chemical_id', $record->chemical_id)
+    ->where('warehouse_id', $record->warehouse_id)
+    ->whereHas('warehouse', function ($q) {
+        $q->whereColumn('warehouses.user_id', 'warehouse_stocks.user_id');
+    })
+    ->first();
+
+
 
             if (! $stock) {
                 Notification::make()

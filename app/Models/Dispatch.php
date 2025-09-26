@@ -14,11 +14,13 @@ class Dispatch extends Model
           'region_id',
           'district_id',
           'chemical_request_id',
-          'driver_name',
-          'driver_phone',
-          'driver_license',
-          'vehicle_number',
-          'drivers',
+              'driver_name',
+              'driver_phone',
+              'driver_license',
+              'vehicle_number',
+              'quantity',
+              'trip_complete',
+              // legacy JSON removed - using concrete columns
           'chemical_id',
           'status',
           'dispatched_at',
@@ -36,12 +38,13 @@ class Dispatch extends Model
           'notes',
      ];
 
-    protected $casts = [
-    'drivers' => 'array',
-    'dco_approved_at' => 'datetime',
-    'auditor_approved_at' => 'datetime',
-    'regional_manager_approved_at' => 'datetime',
-];
+     protected $casts = [
+          'trip_complete' => 'boolean',
+          'quantity' => 'integer',
+          'dco_approved_at' => 'datetime',
+          'auditor_approved_at' => 'datetime',
+          'regional_manager_approved_at' => 'datetime',
+     ];
 
 
 

@@ -18,7 +18,13 @@ return new class extends Migration
             $table->foreignId('district_id')->constrained()->cascadeOnDelete();
             $table->foreignId('chemical_request_id')->constrained()->cascadeOnDelete();
             $table->foreignId('chemical_id')->constrained()->cascadeOnDelete();
-             $table->json('drivers'); 
+              $table->string('driver_name')->nullable()->after('chemical_id');
+            $table->string('driver_phone')->nullable()->after('driver_name');
+            $table->string('driver_license')->nullable()->after('driver_phone');
+            $table->string('vehicle_number')->nullable()->after('driver_license');
+            $table->integer('quantity')->default(0)->after('vehicle_number');
+            $table->boolean('trip_complete')->default(false)->after('quantity');
+        
 
             // shipment status
             $table->enum('status', ['pending',  'delivered'])->default('pending');

@@ -16,6 +16,10 @@ return new class extends Migration
             $table->foreignId('chemical_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('warehouse_id')->constrained()->cascadeOnDelete();
+             $table->string('driver_name')->nullable();
+            $table->string('driver_phone')->nullable();
+            $table->string('driver_license')->nullable();
+            $table->string('vehicle_number')->nullable();
             $table->decimal('quantity_received', 12, 2);
             $table->decimal('quantity_available', 12, 2);
             $table->string('batch_number')->nullable();

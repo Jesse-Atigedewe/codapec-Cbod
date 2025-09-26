@@ -12,7 +12,7 @@ use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Repeater;
+// Repeater removed: using single driver fields instead
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -99,43 +99,34 @@ class EditDispatch extends Component implements HasActions, HasSchemas
 
 
 
-                // Drivers & Vehicles - stored in JSON
-                Repeater::make('drivers')
-                    ->label('Drivers & Vehicles')
-                    ->schema([
-                        TextInput::make('driver_name')
-                            ->label('Driver Name')
-                            ->required()
-                            ->maxLength(255),
+                // Single driver fields (dispatch represents one driver/waybill)
+                TextInput::make('driver_name')
+                    ->label('Driver Name')
+                    ->required()
+                    ->maxLength(255),
 
-                        TextInput::make('driver_phone')
-                            ->label('Driver Phone')
-                            ->required()
-                            ->tel()
-                            ->maxLength(20),
+                TextInput::make('driver_phone')
+                    ->label('Driver Phone')
+                    ->required()
+                    ->tel()
+                    ->maxLength(20),
 
-                        TextInput::make('driver_license')
-                            ->label('Driver License')
-                            ->nullable()
-                            ->maxLength(50),
+                TextInput::make('driver_license')
+                    ->label('Driver License')
+                    ->nullable()
+                    ->maxLength(50),
 
-                        TextInput::make('vehicle_number')
-                            ->label('Vehicle Number')
-                            ->required()
-                            ->maxLength(50),
+                TextInput::make('vehicle_number')
+                    ->label('Vehicle Number')
+                    ->required()
+                    ->maxLength(50),
 
-                        TextInput::make('quantity')
-                            ->label('Quantity')
-                            ->numeric()
-                            ->required(),
-
-                        Hidden::make('trip_complete')
-                            ->label('Trip Complete')
-                            ->dehydrated()
-                            ->default(false),
-                    ])
-                    ->columns(2)
+                TextInput::make('quantity')
+                    ->label('Quantity')
+                    ->numeric()
                     ->required(),
+
+                Hidden::make('trip_complete')->default(false),
             ])
             ->statePath('data')
             ->model(Dispatch::class);
@@ -154,9 +145,10 @@ class EditDispatch extends Component implements HasActions, HasSchemas
     $alreadyDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)
         ->where('id', '!=', $this->record->id) // exclude current dispatch
         ->get()
-        ->sum(fn($dispatch) => collect($dispatch->drivers)->sum('quantity'));
+        ->sum(fn($dispatch) => (int) ($dispatch->quantity ?? 0));
 
-    $newQuantity = collect($data['drivers'])->sum('quantity');
+    // For single-dispatch-per-record flow, new quantity comes from quantity field
+    $newQuantity = (int) ($data['quantity'] ?? 0);
 
     if (($alreadyDispatched + $newQuantity) > $chemicalRequest->quantity) {
         Notification::make()
@@ -166,13 +158,21 @@ class EditDispatch extends Component implements HasActions, HasSchemas
         return;
     }
 
+    // Use concrete dispatch columns directly
+    $data['driver_name'] = $data['driver_name'] ?? null;
+    $data['driver_phone'] = $data['driver_phone'] ?? null;
+    $data['driver_license'] = $data['driver_license'] ?? null;
+    $data['vehicle_number'] = $data['vehicle_number'] ?? null;
+    $data['quantity'] = $newQuantity;
+    $data['trip_complete'] = $data['trip_complete'] ?? false;
+
     // ✅ Update current dispatch
     $this->record->update($data);
 
-    // ✅ Recalculate all dispatch quantities for this request
+    // ✅ Recalculate all dispatch quantities for this request using concrete quantity field
     $totalDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)
         ->get()
-        ->sum(fn($dispatch) => collect($dispatch->drivers)->sum('quantity'));
+        ->sum(fn($dispatch) => (int) ($dispatch->quantity ?? 0));
 
     $remaining = max(0, $chemicalRequest->quantity - $totalDispatched);
 
@@ -186,7 +186,7 @@ class EditDispatch extends Component implements HasActions, HasSchemas
     ]);
 
     // ✅ Create receiving record if RM just approved
-    $totalQuantity = collect($this->record->drivers)->sum('quantity');
+    $totalQuantity = (int) ($this->record->quantity ?? 0);
 
     if (!$wasRmApproved && $this->record->regional_manager_approved) {
         DcoReceivedChemicals::updateOrCreate(

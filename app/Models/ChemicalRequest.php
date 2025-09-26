@@ -64,7 +64,7 @@ use HasFactory;
     public function getDispatchedQuantityAttribute(): float
     {
         return $this->dispatches->sum(
-            fn($dispatch) => collect($dispatch->drivers)->sum('quantity')
+            fn($dispatch) => (int) ($dispatch->quantity ?? 0)
         );
     }
 

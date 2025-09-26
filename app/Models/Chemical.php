@@ -11,10 +11,15 @@ class Chemical extends Model
 
     protected $fillable = [
     'name',
-    'type',
+    'type_id',
     'state',
     'unit',
 ];
+
+    public function type()
+    {
+        return $this->belongsTo(ChemicalType::class, 'type_id');
+    }
 
 }
 

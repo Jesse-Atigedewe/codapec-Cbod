@@ -16,7 +16,11 @@ class WarehouseStock extends Model
         'quantity_received', 
         'quantity_available',
         'batch_number',
-        'received_date'
+        'received_date',
+        'driver_name',
+        'driver_phone',
+        'driver_license',
+        'vehicle_number',
     ];
 
     public function casts()
@@ -25,6 +29,10 @@ class WarehouseStock extends Model
             'quantity_received' => 'integer',
             'quantity_available' => 'integer',
             'received_date' => 'date',
+            'driver_name' => 'string',
+            'driver_phone' => 'string',
+            'driver_license' => 'string',
+            'vehicle_number' => 'string',
         ];
     }
 

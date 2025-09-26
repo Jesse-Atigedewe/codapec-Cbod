@@ -14,44 +14,50 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-         User::create([
-            'name' => 'Super Admin',
+        User::firstOrCreate([
             'email' => 'superadmin@example.com',
+        ], [
+            'name' => 'Super Admin',
             'password' => Hash::make('password'),
             'role' => 'superadmin',
         ]);
 
-        User::create([
-            'name' => 'Admin User',
+        User::firstOrCreate([
             'email' => 'admin@example.com',
+        ], [
+            'name' => 'Admin User',
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
 
-        User::create([
-            'name' => 'CODAPEC Rep',
+        User::firstOrCreate([
             'email' => 'codapecrep@example.com',
+        ], [
+            'name' => 'CODAPEC Rep',
             'password' => Hash::make('password'),
             'role' => 'codapecrep',
         ]);
 
-        User::create([
-            'name' => 'DCO User',
+        User::firstOrCreate([
             'email' => 'dco@example.com',
+        ], [
+            'name' => 'DCO User',
             'password' => Hash::make('password'),
             'role' => 'dco',
         ]);
 
-         User::create([
-            'name' => 'Auditor User',
+        User::firstOrCreate([
             'email' => 'auditor@example.com',
+        ], [
+            'name' => 'Auditor User',
             'password' => Hash::make('password'),
             'role' => 'auditor',
         ]);
 
-          User::create([
-            'name' => 'Regional Manager User',
+        User::firstOrCreate([
             'email' => 'regionalmanager@example.com',
+        ], [
+            'name' => 'Regional Manager User',
             'password' => Hash::make('password'),
             'role' => 'regional_manager',
         ]);

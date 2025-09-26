@@ -95,6 +95,10 @@ Route::middleware(['auth'])->group(function () {
           Route::get('/chemicals', ListChemicals::class)->name('chemicals.index');
           Route::get('/chemicals/create', CreateChemical::class)->name('chemicals.create');
           Route::get('/chemicals/{record}/edit', EditChemical::class)->name('chemicals.edit');
+          // Chemical Types (CRUD)
+          Route::get('/chemical-types', \App\Livewire\ChemicalTypes\ListChemicalTypes::class)->name('chemical_types.index');
+          Route::get('/chemical-types/create', \App\Livewire\ChemicalTypes\CreateChemicalType::class)->name('chemical_types.create');
+          Route::get('/chemical-types/{record}/edit', \App\Livewire\ChemicalTypes\EditChemicalType::class)->name('chemical_types.edit');
           // Dispatch approvals (admin manage)
           Route::get('/dispatches', \App\Livewire\Dispatches\ListDispatches::class)->name('dispatches.index');
           Route::get('/dispatches/{record}/edit', \App\Livewire\Dispatches\EditDispatch::class)->name('dispatches.edit');

@@ -15,8 +15,7 @@ return new class extends Migration
     $table->id();
     $table->string('name');
     // usage type: insecticide, fungicide, herbicide, fertilizer
-    $table->enum('type', ['insecticide', 'fungicide', 'herbicide', 'fertilizer'])->nullable();
-    // physical state: granular, solid, liquid, powder
+    $table->foreignId('type_id')->nullable()->nullOnDelete();
     $table->enum('state', ['granular', 'solid', 'liquid', 'powder'])->nullable();
     // unit of measure
     $table->enum('unit', ['liters', 'kg', 'bottles'])->default('liters');

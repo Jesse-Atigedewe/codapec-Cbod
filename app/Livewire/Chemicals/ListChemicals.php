@@ -32,17 +32,17 @@ class ListChemicals extends Component implements HasActions, HasSchemas, HasTabl
         ->query(fn (): Builder => Chemical::query())
         ->columns([
             TextColumn::make('name')
-                ->label('Chemical Name')
+                ->label('Item Name')
                 ->sortable()
                 ->searchable(),
 
-            TextColumn::make('type')
-                ->label('Type')
+            TextColumn::make('type.name')
+                ->label('Item Type')
                 ->sortable()
                 ->searchable(),
 
             TextColumn::make('state')
-                ->label('State')
+                ->label('Item State')
                 ->sortable()
                 ->searchable(),
 
@@ -52,7 +52,9 @@ class ListChemicals extends Component implements HasActions, HasSchemas, HasTabl
                 ->searchable(),
         ])
         ->headerActions([
-            CreateAction::make()->url(fn(): string => route('chemicals.create')),
+            CreateAction::make()
+            ->url(fn(): string => route('chemicals.create'))
+            ->label('Add New Item'),
         ])
         ->recordActions([
             DeleteAction::make(),

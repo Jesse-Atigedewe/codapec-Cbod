@@ -10,7 +10,8 @@ return [
         ['label' => 'Haulage Companies', 'icon' => 'beaker', 'route' => 'haulage_companies.index'],
         ['label' => 'Region List', 'icon' => 'map', 'route' => 'regions.index'],
         ['label' => 'District List', 'icon' => 'map-pin', 'route' => 'districts.index'],
-        ['label' => 'Chemicals', 'icon' => 'beaker', 'route' => 'chemicals.index'],
+    ['label' => 'Items', 'icon' => 'beaker', 'route' => 'chemicals.index'],
+    ['label' => 'Item Types', 'icon' => 'beaker', 'route' => 'chemical_types.index'],
         ['label' => 'Evacuate', 'icon' => 'truck', 'route' => 'chemical_requests.index'],
         ['label' => 'Farmers', 'icon' => 'user', 'route' => 'farmers.index'],
         ['label' => 'Farmer Groups', 'icon' => 'users', 'route' => 'farmer_groups.index'],
@@ -19,7 +20,7 @@ return [
     'codapecrep' => [
         ['label' => 'Warehouse Stocks', 'icon' => 'beaker', 'route' => 'warehouse_stocks.index'],
         ['label' => 'Evacuations', 'icon' => 'truck', 'route' => 'rep.chemical_requests.index'],
-        ['label' => 'Chemical Evacuated', 'icon' => 'truck', 'route' => 'dispatches.index'],
+        ['label' => 'Chemicals Evacuated', 'icon' => 'truck', 'route' => 'dispatches.index'],
     ],
     'dco' => [
         ['label' => 'Dispatches', 'icon' => 'truck', 'route' => 'dco.dispatches.index'],
