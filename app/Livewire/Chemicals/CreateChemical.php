@@ -31,12 +31,12 @@ class CreateChemical extends Component implements HasActions, HasSchemas
         return $schema
             ->components([
                 TextInput::make('name')
-                    ->label('Item Name')
+                    ->label('Input Name')
                     ->required()
                     ->maxLength(255),
 
                 Select::make('type_id')
-                    ->label('Item Type')
+                    ->label('Input Type')
                     ->options(fn() => \App\Models\ChemicalType::pluck('name', 'id')->toArray())
                     ->searchable()
                     ->required(),
@@ -83,7 +83,7 @@ class CreateChemical extends Component implements HasActions, HasSchemas
         $data = $this->form->getState();
         $record = Chemical::create($data);
         $this->form->model($record)->saveRelationships();
-        Notification::make()->success()->title('Chemical created successfully');
+        Notification::make()->success()->title('Input created successfully');
         $this->redirectRoute('chemicals.index');
     }
 

@@ -39,7 +39,7 @@ class CreateChemicalType extends Component implements HasActions, HasSchemas
         $record = ChemicalType::create($data);
 
         $this->form->model($record)->saveRelationships();
-        Notification::make()->success()->title('Chemical type created successfully');
+        Notification::make()->success()->title('Input type created successfully');
         $this->redirectRoute('chemical_types.index');
     }
 

@@ -59,7 +59,7 @@ class ListDispatches extends Component implements HasActions, HasSchemas, HasTab
             ->query(fn (): Builder => $query)
             ->columns([
                 TextColumn::make('chemicalRequest.chemical.name')->label('Chemical Name'),
-                TextColumn::make('chemicalRequest.quantity')->label('Qty'),
+                TextColumn::make('quantity')->label('Qty'),
                 TextColumn::make('chemicalRequest.chemical.unit')->label('Unit'),
                 TextColumn::make('chemicalRequest.user.name')
                     ->label('Requester')

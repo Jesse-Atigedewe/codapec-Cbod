@@ -1,9 +1,18 @@
 <x-layouts.app :title="__('Dashboard')">
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
-      
-        @livewire(\App\Livewire\MembersWidget::class)
-           @livewire(\App\Livewire\WarehouseChemicalStock::class)
+    <div class="grid grid-cols-1 gap-4">
+        <div class="col-span-1">
+            @livewire(\App\Livewire\CountsWidget::class)
+        </div>
 
+        <div class="col-span-1">
+            @livewire(\App\Livewire\ItemsByTypeWidget::class)
+        </div>
+
+    
+
+        <div class="col-span-1">
+            @livewire(\App\Livewire\WarehousesGrouped::class)
+        </div>
     </div>
 </x-layouts.app>
     

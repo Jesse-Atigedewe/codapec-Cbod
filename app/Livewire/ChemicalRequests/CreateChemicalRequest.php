@@ -58,10 +58,10 @@ class CreateChemicalRequest extends Component implements HasActions, HasSchemas
                     ->required()
                     ->searchable(),
                 Select::make('chemical_id')
-                    ->label('Select chemical')
+                    ->label('Select Input')
                     ->options(Chemical::query()->pluck('name', 'id'))->searchable(),
                 Select::make('warehouse_id')
-                    ->label('Select warehouse')
+                    ->label('Select Warehouse')
                     ->options(Warehouse::query()
                         ->pluck('name', 'id'))->searchable(),
                 Select::make('haulage_company_id')
@@ -84,7 +84,7 @@ class CreateChemicalRequest extends Component implements HasActions, HasSchemas
     if (!$warehouse) {
         Notification::make()
             ->danger()
-            ->title('Invalid warehouse selected')
+            ->title('Invalid Warehouse Selected')
             ->send();
         return;
     }

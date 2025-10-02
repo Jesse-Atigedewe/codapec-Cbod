@@ -1,5 +1,5 @@
 <div class="p-6">
-    <h1 class="text-lg font-semibold">Edit Chemical Type</h1>
+    <h1 class="text-lg font-semibold">Edit Input Type</h1>
 
 
      <form wire:submit="save">

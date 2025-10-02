@@ -31,13 +31,13 @@ class ListChemicalTypes extends Component implements HasActions, HasSchemas, Has
         return $table
             ->query(fn(): Builder => ChemicalType::query())
             ->columns([
-                TextColumn::make('id')->sortable(),
+                // TextColumn::make('id')->sortable(),
                 TextColumn::make('name')->searchable()->sortable(),
             ])
             ->headerActions([
                 CreateAction::make()
                 ->url(fn(): string => route('chemical_types.create'))
-                ->label('Add New Type'),
+                ->label('Add New Input Type'),
             ])
             ->recordActions([
                 DeleteAction::make(),

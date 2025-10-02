@@ -11,6 +11,7 @@ class FarmerGroupDistributionRecord extends Model
         'distributed_by',
         'distributed_at',
         'notes',
+        'dco_received_chemical_id',
     ];
     public function dispatch() { return $this->belongsTo(Dispatch::class); }
     public function farmerGroup() { return $this->belongsTo(FarmerGroup::class); }

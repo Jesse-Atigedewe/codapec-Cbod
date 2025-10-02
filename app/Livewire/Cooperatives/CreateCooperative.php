@@ -9,6 +9,7 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use App\Models\FarmerGroup;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -43,6 +44,12 @@ class CreateCooperative extends Component implements HasActions, HasSchemas
                 TextInput::make('leader_name')->label('Leader Name'),
                 TextInput::make('leader_contact')->label('Leader Contact'),
                 TextInput::make('number_of_members')->numeric(),
+                Select::make('farmer_groups')
+                    ->label('Farmer Groups')
+                    ->options(fn() => FarmerGroup::pluck('name','id')->toArray())
+                    ->multiple()
+                    ->searchable()
+                    ->hint('Assign farmer groups to this cooperative'),
             ])
             ->statePath('data')
             ->model(Cooperative::class);
@@ -51,8 +58,15 @@ class CreateCooperative extends Component implements HasActions, HasSchemas
     public function create(): void
     {
         $data = $this->form->getState();
+        $farmerGroups = $data['farmer_groups'] ?? null;
+        unset($data['farmer_groups']);
+
         $record = Cooperative::create($data);
         $this->form->model($record)->saveRelationships();
+
+        if (is_array($farmerGroups)) {
+            FarmerGroup::whereIn('id', $farmerGroups)->update(['cooperative_id' => $record->id]);
+        }
         Notification::make()->success()->title('Cooperative created successfully');
         $this->redirectRoute('cooperatives.index');
     }

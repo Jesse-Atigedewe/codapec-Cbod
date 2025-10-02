@@ -26,4 +26,9 @@ class Cooperative extends Model
     {
         return $this->belongsTo(Region::class);
     }
+
+    public function farmerGroups()
+    {
+        return $this->hasMany(FarmerGroup::class);
+    }
 }

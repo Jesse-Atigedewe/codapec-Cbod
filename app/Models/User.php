@@ -74,6 +74,11 @@ class User extends Authenticatable
         return $this->belongsTo(District::class);
     }
 
+    public function warehouses()
+    {
+        return $this->hasMany(Warehouse::class);
+    }
+
 
     public function hasRole(array|string $roles): bool
     {

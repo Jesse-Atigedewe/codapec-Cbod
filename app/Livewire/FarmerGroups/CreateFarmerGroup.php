@@ -8,7 +8,9 @@ use App\Models\Region;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\TextInput;
+use App\Models\Farmer;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -41,7 +43,13 @@ class CreateFarmerGroup extends Component implements HasActions, HasSchemas
                 })
                 ->required()
                 ->searchable(),
-                TextInput::make('name')->label('Cooperative Name'),
+                TextInput::make('name')->label('Group Name'),
+                Select::make('farmers')
+                    ->label('Members')
+                    ->options(fn() => Farmer::pluck('name','id')->toArray())
+                    ->multiple()
+                    ->searchable()
+                    ->hint('Select farmers to add as members of this group'),
                 TextInput::make('leader_name')->label('Leader Name'),
                 TextInput::make('leader_contact')->label('Leader Contact'),
                 TextInput::make('number_of_members')->numeric(),
@@ -53,8 +61,15 @@ class CreateFarmerGroup extends Component implements HasActions, HasSchemas
     public function create(): void
     {
         $data = $this->form->getState();
+        $farmers = $data['farmers'] ?? null;
+        unset($data['farmers']);
+
         $record = FarmerGroup::create($data);
         $this->form->model($record)->saveRelationships();
+
+        if (is_array($farmers)) {
+            \App\Models\Farmer::whereIn('id', $farmers)->update(['farmer_group_id' => $record->id]);
+        }
         Notification::make()->success()->title('Farmer group created successfully');
         $this->redirectRoute('farmer_groups.index');
     }

@@ -38,7 +38,7 @@ class EditChemicalType extends Component implements HasActions, HasSchemas
     {
         $data = $this->form->getState();
         $this->record->update($data);
-        Notification::make()->success()->title('Chemical type updated successfully');
+        Notification::make()->success()->title('Input type updated successfully');
         $this->redirectRoute('chemical_types.index');
     }
 

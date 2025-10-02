@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dispatches;
 
+use App\Models\DcoReceivedChemicals;
 use Livewire\Component;
 use App\Models\Dispatch;
 use Illuminate\Support\Facades\Auth;
@@ -42,25 +43,25 @@ class ViewDispatch extends Component
     /**
      * Toggle trip_complete for a specific driver.
      */
-    public function toggleDriver(?int $dispatchId = null): void
-    {
-        $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
-        if (!$dispatch) {
-            return;
-        }
+    // public function toggleDriver(?int $dispatchId = null): void
+    // {
+    //     $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
+    //     if (!$dispatch) {
+    //         return;
+    //     }
 
-        // toggle concrete trip_complete column (single-driver per dispatch)
-        $dispatch->trip_complete = !($dispatch->trip_complete ?? false);
-        $dispatch->save();
+    //     // toggle concrete trip_complete column (single-driver per dispatch)
+    //     $dispatch->trip_complete = !($dispatch->trip_complete ?? false);
+    //     $dispatch->save();
 
-    $driverName = $dispatch->driver_name ?? 'Driver';
+    // $driverName = $dispatch->driver_name ?? 'Driver';
 
-        Notification::make()
-            ->success()
-            ->title("Driver trip status updated")
-            ->body("{$driverName} trip is now " . ($dispatch->trip_complete ? 'Complete' : 'Pending'))
-            ->send();
-    }
+    //     Notification::make()
+    //         ->success()
+    //         ->title("Driver trip status updated")
+    //         ->body("{$driverName} trip is now " . ($dispatch->trip_complete ? 'Complete' : 'Pending'))
+    //         ->send();
+    // }
 
     /**
      * Toggle DCO approval for the dispatch.
@@ -77,11 +78,10 @@ class ViewDispatch extends Component
         }
 
         // Only allow if the trip for this dispatch is complete
-        if (empty($dispatch->trip_complete)) {
+        if ($dispatch->dco_approved) {
             Notification::make()
                 ->warning()
-                ->title("Cannot approve")
-                ->body("All trips must be marked complete first.")
+                ->title("Already approved")
                 ->send();
             return;
         }
@@ -89,6 +89,27 @@ class ViewDispatch extends Component
         $dispatch->dco_approved = !$dispatch->dco_approved;
         $dispatch->dco_approved_by = $dispatch->dco_approved ? Auth::id() : null;
         $dispatch->dco_approved_at = $dispatch->dco_approved ? now() : null;
+
+          if ($dispatch->dco_approved) {
+            // For single-driver dispatches, the dispatch->quantity represents the dispatched amount
+            $totalQuantity = $dispatch->quantity ?? 0;
+
+            DcoReceivedChemicals::updateOrCreate(
+                ['dispatch_id' => $dispatch->id],
+                [
+                    'user_id' => Auth::id(),
+                    'district_id' => $dispatch->district_id,
+                    // 'region_id' => $dispatch->region_id,
+                    'quantity_received' => $totalQuantity,
+                    'quantity_distributed' => 0,
+                    'received_at' => now(),
+                ]
+            );
+
+            // ✅ Mark dispatch as delivered
+            $dispatch->status = 'delivered';
+            $dispatch->delivered_at = now();
+        }
         $dispatch->save();
 
         Notification::make()
@@ -159,30 +180,11 @@ class ViewDispatch extends Component
         $dispatch->regional_manager_approved = !$dispatch->regional_manager_approved;
         $dispatch->regional_manager_approved_by = $dispatch->regional_manager_approved ? Auth::id() : null;
         $dispatch->regional_manager_approved_at = $dispatch->regional_manager_approved ? now() : null;
-
+         $dispatch->save();
         // ✅ If approved, update stocks & mark dispatch as delivered
-        if ($dispatch->regional_manager_approved) {
-            // For single-driver dispatches, the dispatch->quantity represents the dispatched amount
-            $totalQuantity = $dispatch->quantity ?? 0;
+      
 
-            \App\Models\DcoReceivedChemicals::updateOrCreate(
-                ['dispatch_id' => $dispatch->id],
-                [
-                    'user_id' => Auth::id(),
-                    'district_id' => $dispatch->district_id,
-                    // 'region_id' => $dispatch->region_id,
-                    'quantity_received' => $totalQuantity,
-                    'quantity_distributed' => 0,
-                    'received_at' => now(),
-                ]
-            );
-
-            // ✅ Mark dispatch as delivered
-            $dispatch->status = 'delivered';
-            $dispatch->delivered_at = now();
-        }
-
-        $dispatch->save();
+       
 
         Notification::make()
             ->success()

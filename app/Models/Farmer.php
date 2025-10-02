@@ -19,4 +19,8 @@ class Farmer extends Model
     {
         return $this->belongsTo(Region::class);
     }
+    public function farmerGroup()
+    {
+        return $this->belongsTo(FarmerGroup::class);
+    }
 }

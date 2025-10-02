@@ -9,6 +9,7 @@ use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use App\Models\Farmer;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -27,7 +28,9 @@ class EditFarmerGroup extends Component implements HasActions, HasSchemas
 
     public function mount(): void
     {
-        $this->form->fill($this->record->attributesToArray());
+        $state = $this->record->attributesToArray();
+        $state['farmers'] = $this->record->farmers()->pluck('id')->toArray();
+        $this->form->fill($state);
     }
 
     public function form(Schema $schema): Schema
@@ -43,7 +46,13 @@ class EditFarmerGroup extends Component implements HasActions, HasSchemas
                 })
                 ->required()
                 ->searchable(),
-                TextInput::make('name'),
+                TextInput::make('name')->label('Group Name'),
+                Select::make('farmers')
+                    ->label('Members')
+                    ->options(fn() => Farmer::pluck('name','id')->toArray())
+                    ->multiple()
+                    ->searchable()
+                    ->hint('Select farmers to be members of this group'),
                 TextInput::make('leader_name'),
                 TextInput::make('leader_contact'),
                 TextInput::make('number_of_members')->numeric(),
@@ -55,7 +64,16 @@ class EditFarmerGroup extends Component implements HasActions, HasSchemas
     public function save(): void
     {
         $data = $this->form->getState();
+        $farmers = $data['farmers'] ?? null;
+        unset($data['farmers']);
+
         $this->record->update($data);
+
+        if (is_array($farmers)) {
+            // clear previous membership and set new
+            Farmer::where('farmer_group_id', $this->record->id)->update(['farmer_group_id' => null]);
+            Farmer::whereIn('id', $farmers)->update(['farmer_group_id' => $this->record->id]);
+        }
         Notification::make()->success()->title('Farmer group updated successfully');
         $this->redirectRoute('farmer_groups.index');
     }

@@ -99,7 +99,7 @@ class DistributeToCooperatives extends Component implements HasActions, HasSchem
             ->where('dispatch_id', $data['dispatch_id'])
             ->latest('received_at')
             ->first();
-
+        
         if (! $received) {
             Notification::make()
                 ->danger()

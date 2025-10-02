@@ -55,24 +55,19 @@ use HasFactory;
     }
 
 
-    public static function statuses(): array
-    {
-        return ['pending', 'approved', 'dispatched'];
-    }
 
-      // ✅ Total dispatched so far
-    public function getDispatchedQuantityAttribute(): float
-    {
-        return $this->dispatches->sum(
-            fn($dispatch) => (int) ($dispatch->quantity ?? 0)
-        );
-    }
 
-    // ✅ Remaining balance
-    public function getRemainingQuantityAttribute(): float
-    {
-        return $this->quantity - $this->dispatched_quantity;
-    }
+// ✅ How much has been dispatched
+public function getDispatchedQuantityAttribute(): int
+{
+    return $this->dispatches()->sum('quantity');
+}
+
+// ✅ How much remains
+public function getRemainingQuantityAttribute(): int
+{
+    return max(0, $this->quantity - $this->dispatched_quantity);
+}
 
     
     

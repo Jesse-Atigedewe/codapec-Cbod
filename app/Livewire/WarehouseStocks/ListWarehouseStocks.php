@@ -16,6 +16,7 @@ use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Livewire\Component;
 
 class ListWarehouseStocks extends Component implements HasActions, HasSchemas, HasTable
@@ -24,39 +25,52 @@ class ListWarehouseStocks extends Component implements HasActions, HasSchemas, H
     use InteractsWithTable;
     use InteractsWithSchemas;
 
-    protected function getUserWarehouseId(): ?int
+   public function table(Table $table): Table
     {
         $userId = Auth::id();
-        return Warehouse::query()->where('user_id', $userId)->value('id');
-    }
-
-    public function table(Table $table): Table
-    {
-        $warehouseId = $this->getUserWarehouseId();
+        $userWarehouseIds = Warehouse::query()
+            ->where('user_id', $userId)
+            ->pluck('id')
+            ->toArray();
 
         return $table
             ->query(fn (): Builder => WarehouseStock::query()
-                ->when($warehouseId, fn ($q) => $q->where('warehouse_id', $warehouseId))
-                ->with(['chemical']))
+                ->when(
+                    count($userWarehouseIds) > 0,
+                    fn ($q) => $q->whereIn('warehouse_id', $userWarehouseIds)
+                )
+                ->with(['chemical.type', 'warehouse'])
+            )
             ->columns([
-                TextColumn::make('chemical.name')->label('Chemical')->searchable(),
-                TextColumn::make('quantity_received')->label('Received'),
-                TextColumn::make('quantity_available')->label('Available'),
-                TextColumn::make('batch_number')->label('Batch'),
-                TextColumn::make('received_date')->date()->label('Received At'),
+                TextColumn::make('warehouse.name')
+                    ->label('Warehouse')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('chemical.type.name')
+                    ->label('Type')
+                    ->sortable(),
+
+                TextColumn::make('chemical.name')
+                    ->label('Chemical')
+                    ->searchable(),
+
+                TextColumn::make('chemical.state')
+                    ->label('State'),
+
+                TextColumn::make('quantity_available')
+                    ->label('Remaining'),
+                    // ->summarize(Sum::make()->label('Total Remaining')),
+            ])
+            ->groups([
+                'warehouse.name', // group rows by warehouse
             ])
             ->headerActions([
-                CreateAction::make()->url(fn(): string => route('warehouse_stocks.create')),
-                // EditAction::make()
-            ]);
+                CreateAction::make()->url(fn():string=>route('warehouse_stocks.create'))
+            ])
+            ->defaultGroup('warehouse.name')
+            ->paginated(false); // if you want to see all chemicals at once
     }
-
-    public function getTotalAvailableProperty(): float
-    {
-        $warehouseId = $this->getUserWarehouseId();
-        return WarehouseStock::where('warehouse_id', $warehouseId)->sum('quantity_available');
-    }
-
     public function render(): View
     {
         return view('livewire.warehouse-stocks.list-warehouse-stocks');

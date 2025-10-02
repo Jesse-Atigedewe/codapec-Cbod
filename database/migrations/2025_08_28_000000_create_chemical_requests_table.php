@@ -13,9 +13,7 @@ return new class extends Migration
             $table->foreignId('region_id')->constrained()->cascadeOnDelete();
             $table->foreignId('district_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // requester
-             $table->foreignId('warehouse_rep_id')
-          ->constrained('users')
-          ->cascadeOnDelete();
+            $table->foreignId('warehouse_rep_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('chemical_id')->constrained()->cascadeOnDelete();
             $table->foreignId('haulage_company_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('warehouse_id')->constrained()->cascadeOnDelete();

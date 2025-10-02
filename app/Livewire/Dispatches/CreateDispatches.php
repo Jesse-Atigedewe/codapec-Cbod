@@ -47,9 +47,9 @@ class CreateDispatches extends Component implements HasActions, HasSchemas
                     ->downloadable()
                     ->openable(),
 
-                // Chemical request select
+                // Item request select
                Select::make('chemical_request_id')
-    ->label('Chemical Request')
+    ->label('Item Request')
     ->options(
         ChemicalRequest::query()
             ->where('status', 'approved')
@@ -138,76 +138,51 @@ public function create(): void
 
     $chemicalRequest = ChemicalRequest::findOrFail($data['chemical_request_id']);
 
-    // Total already dispatched from previous records - prefer `quantity` column when present
-    $alreadyDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)
-        ->get()
-        ->sum(function ($dispatch) {
-            if (isset($dispatch->quantity) && $dispatch->quantity !== null) {
-                return (int) $dispatch->quantity;
-            }
-            return collect($dispatch->drivers ?? [])->sum('quantity');
-        });
-
-    // For single-dispatch per submit: new quantity is the provided quantity field
+    $alreadyDispatched = $chemicalRequest->dispatched_quantity;
     $newQuantity = (int) ($data['quantity'] ?? 0);
 
-    // Validate against total allowed
+    // Validate
     if (($alreadyDispatched + $newQuantity) > $chemicalRequest->quantity) {
         Notification::make()
-            ->title("Total dispatch quantity ({$alreadyDispatched} + {$newQuantity}) exceeds request limit ({$chemicalRequest->quantity})")
+            ->title("Total dispatch ({$alreadyDispatched} + {$newQuantity}) exceeds request limit ({$chemicalRequest->quantity})")
             ->danger()
             ->send();
         return;
     }
 
-    // Build drivers array from single fields so it remains compatible with existing UI
-    $drivers = [[
-        'driver_name' => $data['driver_name'] ?? null,
-        'driver_phone' => $data['driver_phone'] ?? null,
-        'driver_license' => $data['driver_license'] ?? null,
-        'vehicle_number' => $data['vehicle_number'] ?? null,
-        'quantity' => $newQuantity,
-        'trip_complete' => $data['trip_complete'] ?? false,
-    ]];
-
-    // Remove driver fields from $data so model mass assignment matches
-    unset($data['driver_name'], $data['driver_phone'], $data['driver_license'], $data['vehicle_number'], $data['quantity'], $data['trip_complete']);
-
-    // ✅ Create the dispatch record (save both concrete fields and legacy drivers JSON)
+   
+    // Create dispatch
     $record = Dispatch::create([
-        ...$data, // chemical_request_id, region_id, district_id
-        'chemical_id' => $chemicalRequest->chemical_id,
-        'user_id'     => Auth::id(),
-        'driver_name' => $drivers[0]['driver_name'],
-        'driver_phone' => $drivers[0]['driver_phone'],
-        'driver_license' => $drivers[0]['driver_license'],
-        'vehicle_number' => $drivers[0]['vehicle_number'],
-        'quantity' => $drivers[0]['quantity'],
-        'trip_complete' => $drivers[0]['trip_complete'],
-        'drivers'     => $drivers, // array -> auto-cast to JSON (legacy)
+        ...$data,
+        'chemical_id'    => $chemicalRequest->chemical_id,
+        'user_id'        => Auth::id(),
     ]);
 
     $this->form->model($record)->saveRelationships();
 
-    // ✅ Recalculate total dispatched after this new dispatch
-    $totalDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)
-        ->get()
-        ->sum(fn($dispatch) => collect($dispatch->drivers)->sum('quantity'));
+    // Refresh totals
+   $totalDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)->sum('quantity');
+ 
+$remaining = max(0, $chemicalRequest->quantity - $totalDispatched);
 
-    // ✅ Flip status to "dispatched" only when fully dispatched
-    if ($totalDispatched >= $chemicalRequest->quantity) {
-        $chemicalRequest->update(['status' => 'dispatched']);
-    }
-
+if ($remaining === 0 && $chemicalRequest->status !== 'dispatched') {
+    $chemicalRequest->update(['status' => 'dispatched']);
     Notification::make()
-        ->title('Dispatch created successfully')
         ->success()
+        ->title('Items fully dispatched')
         ->send();
-
-    $this->redirectRoute('dispatches.index');
+}else{
+    Notification::make()
+        ->success()
+        ->title('Dispatch created successfully')
+        ->body("Total dispatched: {$totalDispatched}. Remaining: {$remaining}.")
+        ->send();
 }
 
 
+
+    $this->redirectRoute('dispatches.index');
+}
 
 
     public function render(): View

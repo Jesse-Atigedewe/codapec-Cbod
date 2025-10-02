@@ -14,13 +14,12 @@ class Dispatch extends Model
           'region_id',
           'district_id',
           'chemical_request_id',
-              'driver_name',
-              'driver_phone',
-              'driver_license',
-              'vehicle_number',
-              'quantity',
-              'trip_complete',
-              // legacy JSON removed - using concrete columns
+          'driver_name',
+          'driver_phone',
+          'driver_license',
+          'vehicle_number',
+          'quantity',
+          'trip_complete',
           'chemical_id',
           'status',
           'dispatched_at',
@@ -48,23 +47,41 @@ class Dispatch extends Model
 
 
 
-     public function chemicalRequest() { return $this->belongsTo(ChemicalRequest::class); }
-     public function user() { return $this->belongsTo(User::class); }
-     public function warehouse() { return $this->belongsTo(Warehouse::class); }
-     public function district() { return $this->belongsTo(District::class); }
-     public function region() { return $this->belongsTo(Region::class); }
-     public function chemical() { return $this->belongsTo(Chemical::class); }
-     public function dcoApprover() { return $this->belongsTo(User::class, 'dco_approved_by'); }
-     public function auditorApprover() { return $this->belongsTo(User::class, 'auditor_approved_by'); }
-     public function regionalManagerApprover() { return $this->belongsTo(User::class, 'regional_manager_approved_by'); }
-
-     protected static function booted(): void
+     public function chemicalRequest()
      {
-          static::created(function (Dispatch $dispatch): void {
-               if ($dispatch->chemical_request_id) {
-                    ChemicalRequest::whereKey($dispatch->chemical_request_id)
-                         ->update(['status' => 'dispatched']);
-               }
-          });
+          return $this->belongsTo(ChemicalRequest::class);
      }
+     public function user()
+     {
+          return $this->belongsTo(User::class);
+     }
+     public function warehouse()
+     {
+          return $this->belongsTo(Warehouse::class);
+     }
+     public function district()
+     {
+          return $this->belongsTo(District::class);
+     }
+     public function region()
+     {
+          return $this->belongsTo(Region::class);
+     }
+     public function chemical()
+     {
+          return $this->belongsTo(Chemical::class);
+     }
+     public function dcoApprover()
+     {
+          return $this->belongsTo(User::class, 'dco_approved_by');
+     }
+     public function auditorApprover()
+     {
+          return $this->belongsTo(User::class, 'auditor_approved_by');
+     }
+     public function regionalManagerApprover()
+     {
+          return $this->belongsTo(User::class, 'regional_manager_approved_by');
+     }
+
 }
