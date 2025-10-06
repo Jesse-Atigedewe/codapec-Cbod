@@ -42,11 +42,6 @@ class DistributeToFarmerGroups extends Component implements HasActions, HasSchem
                     ->preload()
                     ->required(),
 
-                // Quantity
-                TextInput::make('quantity')
-                    ->numeric()
-                    ->minValue(0.01)
-                    ->required(),
 
                 
                   // Pick which dispatch's stock to distribute from (by dispatch_id)
@@ -78,6 +73,12 @@ class DistributeToFarmerGroups extends Component implements HasActions, HasSchem
                     })
                     ->searchable()
                     ->preload()
+                    ->required(),
+
+                       // Quantity
+                TextInput::make('quantity')
+                    ->numeric()
+                    ->minValue(0.01)
                     ->required(),
 
                 TextInput::make('notes')->label('Notes')->nullable(),
@@ -128,6 +129,7 @@ class DistributeToFarmerGroups extends Component implements HasActions, HasSchem
 
         // create record
         $record = FarmerGroupDistributionRecord::create([
+            'dispatch_id'             => $data['dispatch_id'],
             'farmer_group_id'         => $data['farmer_group_id'],
             'quantity'                => $qty,
             'distributed_by'          => $userId,

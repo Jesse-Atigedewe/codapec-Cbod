@@ -14,7 +14,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 // Repeater removed: using single driver fields instead
 use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
@@ -45,6 +44,7 @@ class CreateDispatches extends Component implements HasActions, HasSchemas
                     ->image()
                     ->directory('waybills')
                     ->downloadable()
+                    ->required()
                     ->openable(),
 
                 // Item request select
@@ -144,7 +144,7 @@ public function create(): void
     // Validate
     if (($alreadyDispatched + $newQuantity) > $chemicalRequest->quantity) {
         Notification::make()
-            ->title("Total dispatch ({$alreadyDispatched} + {$newQuantity}) exceeds request limit ({$chemicalRequest->quantity})")
+            ->title("{$newQuantity} exceeds request limit of ({$chemicalRequest->quantity})")
             ->danger()
             ->send();
         return;

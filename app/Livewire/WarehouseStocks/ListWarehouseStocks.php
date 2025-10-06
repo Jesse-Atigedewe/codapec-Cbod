@@ -44,12 +44,11 @@ class ListWarehouseStocks extends Component implements HasActions, HasSchemas, H
             ->columns([
                 TextColumn::make('warehouse.name')
                     ->label('Warehouse')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
 
                 TextColumn::make('chemical.type.name')
-                    ->label('Type')
-                    ->sortable(),
+                    ->label('Type'),
+                    // ->sortable(),
 
                 TextColumn::make('chemical.name')
                     ->label('Chemical')
@@ -68,8 +67,7 @@ class ListWarehouseStocks extends Component implements HasActions, HasSchemas, H
             ->headerActions([
                 CreateAction::make()->url(fn():string=>route('warehouse_stocks.create'))
             ])
-            ->defaultGroup('warehouse.name')
-            ->paginated(false); // if you want to see all chemicals at once
+            ->defaultGroup('warehouse.name');
     }
     public function render(): View
     {

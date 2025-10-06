@@ -6,6 +6,7 @@ class FarmerDistributionRecord extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'dispatch_id',
         'farmer_id',
         'quantity',
         'distributed_by',

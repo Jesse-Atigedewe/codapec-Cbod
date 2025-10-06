@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('farmer_groups', function (Blueprint $table) {
             $table->id();
+          
             $table->foreignId('region_id')->constrained()->cascadeOnDelete();
             $table->foreignId('district_id')->constrained()->cascadeOnDelete();
             $table->string('name');

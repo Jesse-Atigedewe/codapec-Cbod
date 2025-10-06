@@ -42,12 +42,7 @@ class DistributeToCooperatives extends Component implements HasActions, HasSchem
                     ->preload()
                     ->required(),
 
-                // Quantity input
-                TextInput::make('quantity')
-                    ->numeric()
-                    ->minValue(0.01)
-                    ->required(),
-
+            
                   // Pick which dispatch's stock to distribute from (by dispatch_id)
                 Select::make('dispatch_id')
                     ->label('Dispatch / Received Stock')
@@ -78,6 +73,13 @@ class DistributeToCooperatives extends Component implements HasActions, HasSchem
                     ->searchable()
                     ->preload()
                     ->required(),
+
+                      // Quantity input
+                TextInput::make('quantity')
+                    ->numeric()
+                    ->minValue(0.01)
+                    ->required(),
+
 
                 TextInput::make('notes')->label('Notes')->nullable(),
 
@@ -127,6 +129,7 @@ class DistributeToCooperatives extends Component implements HasActions, HasSchem
 
         // create record
         $record = CooperativeDistributionRecord::create([
+            'dispatch_id'              => $data['dispatch_id'],
             'cooperative_id'           => $data['cooperative_id'],
             'quantity'                 => $qty,
             'distributed_by'           => $userId,

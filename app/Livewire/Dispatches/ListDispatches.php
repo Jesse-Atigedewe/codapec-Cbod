@@ -76,14 +76,14 @@ class ListDispatches extends Component implements HasActions, HasSchemas, HasTab
                     ->visible(fn() => Auth::user()->role === 'codapecrep')
                     ->url(fn(): string => route('dispatches.create')),
             ])
-            ->filters([
-                SelectFilter::make('status')
-        ->label('Status')
-        ->options([
-            'pending' => 'Pending',
-            'delivered' => 'Delivered',
-        ]),
-            ])
+        //     ->filters([
+        //         SelectFilter::make('status')
+        // ->label('Status')
+        // ->options([
+        //     'pending' => 'Pending',
+        //     'delivered' => 'Delivered',
+        // ]),
+            
             ->recordActions([
                 EditAction::make()
                     ->visible(fn() => Auth::user()->role === 'codapecrep')

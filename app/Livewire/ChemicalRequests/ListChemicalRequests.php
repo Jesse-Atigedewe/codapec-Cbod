@@ -10,9 +10,7 @@ use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
-use Filament\Forms\Components\Select;
 use App\Models\Warehouse;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -25,6 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use App\Models\WarehouseStock;
+use Illuminate\Support\Facades\DB;
 
 class ListChemicalRequests extends Component implements HasActions, HasSchemas, HasTable
 {
@@ -65,7 +64,7 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
             ])
             ->recordActions([
                 DeleteAction::make()->visible(fn() => Auth::user()->role === 'admin'),
-                EditAction::make()->visible(fn() => Auth::user()->role === 'admin'),
+                // EditAction::make()->visible(fn() => Auth::user()->role === 'admin'),
 
 
                 Action::make('Verify')
@@ -77,7 +76,6 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
                         Auth::user()->role === 'codapecrep' && $record->status === 'pending'
                     )
                     ->action(function (ChemicalRequest $record) {
-
                         $userId = Auth::id();
 
                         // Find all warehouses managed by this user
@@ -94,10 +92,10 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
 
                         // Search for stock lots of this chemical across ALL warehouses managed by this user
                         $stocks = WarehouseStock::whereIn('warehouse_id', $warehouses)
-                            ->where('user_id', $userId)
                             ->where('chemical_id', $record->chemical_id)
                             ->orderBy('created_at')
                             ->get();
+                        
 
                         if ($stocks->isEmpty()) {
                             Notification::make()
@@ -120,50 +118,50 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
                         }
 
                         // Deduct requested quantity across warehouses (oldest stock first)
-                        $remainingToDeduct = $record->quantity;
-                        $fulfilledWarehouseId = null;
+                        try {
+                            DB::transaction(function () use ($stocks, $record) {
+                                $quantityToDeduct = $record->quantity;
+                                if( $quantityToDeduct <= 0) {
+                                    throw new \Exception('Requested quantity must be greater than zero');
+                                }
+                                // Deduct requested quantity across warehouses (oldest stock first)
+                                foreach ($stocks as $lot) {
+                                    if ($quantityToDeduct <= 0) {
+                                        break;
+                                    }
 
-                        foreach ($stocks as $lot) {
-                            if ($remainingToDeduct <= 0) {
-                                break;
-                            }
+                                    $available = (float) $lot->quantity_available;
 
-                            $available = $lot->quantity_available;
+                                    if ($available <= 0) {
+                                        continue;
+                                    }
 
-                            if ($available <= 0) {
-                                continue;
-                            }
+                                    $deducted = min($quantityToDeduct, $available);
+                                    $lot->update(['quantity_available' => $available - $deducted]);
+                                    
+                                    $quantityToDeduct -= $deducted;
+                                }
 
-                            if ($fulfilledWarehouseId === null) {
-                                $fulfilledWarehouseId = $lot->warehouse_id; // mark the first warehouse used
-                            }
+                                if ($quantityToDeduct === 0) {
+                                    $record->update([
+                                        'status'       => 'approved',
+                                    ]);
 
-                            if ($available >= $remainingToDeduct) {
-                                $lot->decrement('quantity_available', $remainingToDeduct);
-                                $remainingToDeduct = 0;
-                                break;
-                            }
-
-                            $lot->decrement('quantity_available', $available);
-                            $remainingToDeduct -= $available;
-                        }
-
-                        // After deduction, only approve if fully fulfilled
-                        if ($remainingToDeduct === 0) {
-                            $record->status = 'approved';
-                            $record->warehouse_id = $fulfilledWarehouseId; // use existing column
-                            $record->save();
-
-                            Notification::make()
-                                ->success()
-                                ->title('Request Approved')
-                                ->body('The request has been approved.')
-                                ->send();
-                        } else {
+                                    Notification::make()
+                                        ->success()
+                                        ->title('Request Approved')
+                                        ->body('The request has been fully approved and stock updated.')
+                                        ->send();
+                                } else {
+                                    // rollback if not enough stock
+                                    throw new \Exception('Insufficient stock to fully fulfill request');
+                                }
+                            });
+                        } catch (\Exception $e) {
                             Notification::make()
                                 ->danger()
-                                ->title('Partial Fulfillment')
-                                ->body('Stock approved successfully.')
+                                ->title('Error')
+                                ->body($e->getMessage())
                                 ->send();
                         }
                     }),

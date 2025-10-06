@@ -40,29 +40,7 @@ class ViewDispatch extends Component
     // no legacy drivers JSON: single-driver dispatch columns are used
     }
 
-    /**
-     * Toggle trip_complete for a specific driver.
-     */
-    // public function toggleDriver(?int $dispatchId = null): void
-    // {
-    //     $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
-    //     if (!$dispatch) {
-    //         return;
-    //     }
-
-    //     // toggle concrete trip_complete column (single-driver per dispatch)
-    //     $dispatch->trip_complete = !($dispatch->trip_complete ?? false);
-    //     $dispatch->save();
-
-    // $driverName = $dispatch->driver_name ?? 'Driver';
-
-    //     Notification::make()
-    //         ->success()
-    //         ->title("Driver trip status updated")
-    //         ->body("{$driverName} trip is now " . ($dispatch->trip_complete ? 'Complete' : 'Pending'))
-    //         ->send();
-    // }
-
+    
     /**
      * Toggle DCO approval for the dispatch.
      */
@@ -81,7 +59,8 @@ class ViewDispatch extends Component
         if ($dispatch->dco_approved) {
             Notification::make()
                 ->warning()
-                ->title("Already approved")
+                ->title("Cannot perform request")
+                ->body("Request already received.")
                 ->send();
             return;
         }
@@ -114,7 +93,7 @@ class ViewDispatch extends Component
 
         Notification::make()
             ->success()
-            ->title($dispatch->dco_approved ? "DCO approved dispatch" : "DCO approval revoked")
+            ->title("Request Received")
             ->send();
     }
 
@@ -132,11 +111,11 @@ class ViewDispatch extends Component
             return;
         }
 
-        if (!$dispatch->dco_approved) {
+        if ($dispatch->auditor_approved) {
             Notification::make()
                 ->warning()
-                ->title("Cannot approve")
-                ->body("DCO must approve first.")
+                ->title("Cannot perform request")
+                ->body("Request already verified.")
                 ->send();
             return;
         }
@@ -148,7 +127,7 @@ class ViewDispatch extends Component
 
         Notification::make()
             ->success()
-            ->title($dispatch->auditor_approved ? "Auditor approved" : "Auditor approval revoked")
+            ->title("Request Verified")
             ->send();
     }
 
@@ -167,12 +146,11 @@ class ViewDispatch extends Component
         if (!$dispatch) {
             return;
         }
-
-        if (!$dispatch->auditor_approved || empty($dispatch->trip_complete)) {
+        if ($dispatch->regional_manager_approved) {
             Notification::make()
                 ->warning()
-                ->title("Cannot approve")
-                ->body("Auditor approval and all trips must be completed first.")
+                ->title("Cannot perform action")
+                ->body("You have already confirmed.")
                 ->send();
             return;
         }
@@ -181,14 +159,10 @@ class ViewDispatch extends Component
         $dispatch->regional_manager_approved_by = $dispatch->regional_manager_approved ? Auth::id() : null;
         $dispatch->regional_manager_approved_at = $dispatch->regional_manager_approved ? now() : null;
          $dispatch->save();
-        // ✅ If approved, update stocks & mark dispatch as delivered
-      
-
-       
 
         Notification::make()
             ->success()
-            ->title($dispatch->regional_manager_approved ? "RM approved dispatch & marked delivered" : "RM approval revoked")
+            ->title("Request Confirmed")
             ->send();
     }
 

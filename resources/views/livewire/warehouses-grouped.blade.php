@@ -1,8 +1,8 @@
 <div>
     <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">Warehouses by Chemical</h2>
+        <h2 class="text-lg font-semibold">Warehouses by Input</h2>
         <div class="flex items-center gap-2">
-            <div class="text-sm text-gray-600">Expand a warehouse to see its chemicals by type & state</div>
+            <div class="text-sm text-gray-600">Expand a warehouse to see it's input & state</div>
         </div>
     </div>
 

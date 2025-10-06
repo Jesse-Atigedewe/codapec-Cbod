@@ -67,7 +67,27 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['auth', 'role:admin,codapecrep,dco,regional_manager,auditor'])->group(function () {
     Route::get('/dispatches/{record}/info', \App\Livewire\Dispatches\ViewDispatch::class)
         ->name('dispatches.info');
-});
+    });
+    
+    Route::middleware(['auth', 'role:admin,codapecrep,dco,regional_manager,auditor'])->group(function () {
+        //farmers, farmergroup and cooperative routes 
+              Route::get('/farmers', ListFarmers::class)->name('farmers.index');
+              Route::get('/farmer-groups', ListFarmerGroups::class)->name('farmer_groups.index');
+              Route::get('/cooperatives', ListCooperatives::class)->name('cooperatives.index');
+        //get details of a farmer group members
+        Route::get('/farmer-groups/{record}/member', \App\Livewire\Distribution\ViewFarmerGroupMember::class)
+        ->name('listfarmergroupmember');
+
+         Route::get('/farmer/{record}/member', \App\Livewire\Distribution\ViewFarmerMember::class)
+        ->name('listfarmermember');
+
+         Route::get('/cooperative/{record}/member', \App\Livewire\Distribution\ViewCooperativeMember::class)
+        ->name('listcooperativemember');
+    
+    
+    });
+
+
 
     Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/warehouses', ListWarehouse::class)->name('warehouses.list');
@@ -107,15 +127,15 @@ Route::middleware(['auth'])->group(function () {
           Route::get('/admin/chemical-requests/create', CreateChemicalRequest::class)->name('chemical_requests.create');
           Route::get('/admin/chemical-requests/{record}/edit', EditChemicalRequest::class)->name('chemical_requests.edit');
           // Farmers
-          Route::get('/farmers', ListFarmers::class)->name('farmers.index');
+        //   Route::get('/farmers', ListFarmers::class)->name('farmers.index');
           Route::get('/farmers/create', CreateFarmer::class)->name('farmers.create');
           Route::get('/farmers/{record}/edit', EditFarmer::class)->name('farmers.edit');
           // Farmer Groups
-          Route::get('/farmer-groups', ListFarmerGroups::class)->name('farmer_groups.index');
+        //   Route::get('/farmer-groups', ListFarmerGroups::class)->name('farmer_groups.index');
           Route::get('/farmer-groups/create', CreateFarmerGroup::class)->name('farmer_groups.create');
           Route::get('/farmer-groups/{record}/edit', EditFarmerGroup::class)->name('farmer_groups.edit');
           // Cooperatives
-          Route::get('/cooperatives', ListCooperatives::class)->name('cooperatives.index');
+        //   Route::get('/cooperatives', ListCooperatives::class)->name('cooperatives.index');
           Route::get('/cooperatives/create', CreateCooperative::class)->name('cooperatives.create');
           Route::get('/cooperatives/{record}/edit', EditCooperative::class)->name('cooperatives.edit');
           

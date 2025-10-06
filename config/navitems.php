@@ -25,9 +25,11 @@ return [
     'dco' => [
         ['label' => 'Dispatches', 'icon' => 'truck', 'route' => 'dco.dispatches.index'],
         ['label' => 'Distribution List', 'icon' => 'users', 'route' => 'dco.distributions.index'],
-        ['label' => 'Distribute to Farmers', 'icon' => 'user', 'route' => 'dco.distribute.farmers'],
-        ['label' => 'Distribute to Farmer Groups', 'icon' => 'users', 'route' => 'dco.distribute.farmer_groups'],
-        ['label' => 'Distribute to Cooperatives', 'icon' => 'users', 'route' => 'dco.distribute.cooperatives'],
+
+        //list farmers, farmer groups, cooperatives
+          ['label' => 'Farmers', 'icon' => 'user', 'route' => 'farmers.index'],
+        ['label' => 'Farmer Groups', 'icon' => 'users', 'route' => 'farmer_groups.index'],
+        ['label' => 'Cooperatives', 'icon' => 'users', 'route' => 'cooperatives.index'],
     ],
     'auditor' => [
         ['label' => 'Dispatches', 'icon' => 'truck', 'route' => 'auditor.dispatches.index'],

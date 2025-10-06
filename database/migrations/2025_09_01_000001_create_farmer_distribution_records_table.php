@@ -7,6 +7,7 @@ return new class extends Migration {
     {
         Schema::create('farmer_distribution_records', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('dispatch_id')->constrained('dispatches')->cascadeOnDelete();
             $table->foreignId('dco_received_chemical_id')->constrained('dco_received_chemicals')->cascadeOnDelete();
             $table->foreignId('farmer_id')->constrained('farmers')->cascadeOnDelete();
             $table->decimal('quantity', 10, 2);

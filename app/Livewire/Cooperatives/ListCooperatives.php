@@ -3,6 +3,7 @@
 namespace App\Livewire\Cooperatives;
 
 use App\Models\Cooperative;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -10,6 +11,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
@@ -38,11 +40,22 @@ class ListCooperatives extends Component implements HasActions, HasSchemas, HasT
             
             ])
             ->headerActions([
-                CreateAction::make()->url(fn(): string => route('cooperatives.create')),
+                CreateAction::make()
+                ->visible(auth()->user()->hasRole('admin'))
+                ->url(fn(): string => route('cooperatives.create')),
+                 Action::make('Distribute')
+                ->visible(auth()->user()->hasRole(['dco']))
+                ->url(fn (): string => route('dco.distribute.cooperatives')),
             ])
             ->recordActions([
-                DeleteAction::make(),
-                EditAction::make()->url(fn (Cooperative $record): string => route('cooperatives.edit', $record)),
+                DeleteAction::make()->visible(auth()->user()->hasRole('admin')),
+                EditAction::make()
+                ->visible(auth()->user()->hasRole('admin'))
+                ->url(fn (Cooperative $record): string => route('cooperatives.edit', $record)),
+                ViewAction::make('Details')
+                ->visible(auth()->user()->hasRole(['admin','dco']))
+                ->url(fn (Cooperative $record): string => route('listcooperativemember', $record)),
+            
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

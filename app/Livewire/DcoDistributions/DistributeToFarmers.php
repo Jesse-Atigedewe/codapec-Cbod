@@ -42,13 +42,7 @@ class DistributeToFarmers extends Component implements HasActions, HasSchemas
                     ->preload()
                     ->required(),
 
-                // Quantity to distribute
-                TextInput::make('quantity')
-                    ->label('Quantity')
-                    ->numeric()
-                    ->minValue(0.01)
-                    ->required(),
-
+          
                 // Pick which dispatch's stock to distribute from (by dispatch_id)
                 Select::make('dispatch_id')
                     ->label('Dispatch / Received Stock')
@@ -79,6 +73,14 @@ class DistributeToFarmers extends Component implements HasActions, HasSchemas
                     ->searchable()
                     ->preload()
                     ->required(),
+
+                          // Quantity to distribute
+                TextInput::make('quantity')
+                    ->label('Quantity')
+                    ->numeric()
+                    ->minValue(0.01)
+                    ->required(),
+
 
                 // Optional notes
                 TextInput::make('notes')
@@ -132,6 +134,7 @@ class DistributeToFarmers extends Component implements HasActions, HasSchemas
 
         // Create distribution record (store link to the exact stock row via FK)
         $payload = [
+            'dispatch_id'              => $data['dispatch_id'],
             'farmer_id'                => $data['farmer_id'],
             'quantity'                 => $qty,
             'distributed_by'           => $data['distributed_by'] ?? $userId,

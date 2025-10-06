@@ -59,12 +59,15 @@ class CreateChemicalRequest extends Component implements HasActions, HasSchemas
                     ->searchable(),
                 Select::make('chemical_id')
                     ->label('Select Input')
+                    ->required()
                     ->options(Chemical::query()->pluck('name', 'id'))->searchable(),
                 Select::make('warehouse_id')
+                ->required()
                     ->label('Select Warehouse')
                     ->options(Warehouse::query()
                         ->pluck('name', 'id'))->searchable(),
                 Select::make('haulage_company_id')
+                    ->required()
                     ->label('Select Haulage Company')
                     ->options(HaulageCompany::query()->where('status', 'active')->pluck('name', 'id'))->searchable(),
                 TextInput::make('quantity')->numeric(),
