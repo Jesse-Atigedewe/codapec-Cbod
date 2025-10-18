@@ -37,17 +37,17 @@ class ListRegions extends Component implements HasActions, HasSchemas, HasTable
                 //
             ])
             ->headerActions(actions: [
-                CreateAction::make()->url(fn():string=>route('regions.create'))
+                // CreateAction::make()->url(fn():string=>route('regions.create'))
             ])
             ->recordActions([
-                DeleteAction::make(),
-                EditAction::make()
-                ->url(fn (Region $record): string => route('regions.edit', $record))
+                // DeleteAction::make(),
+                // EditAction::make()
+                // ->url(fn (Region $record): string => route('regions.edit', $record))
                 ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                ]),
+                // BulkActionGroup::make([
+                //     DeleteBulkAction::make()
+                // ]),
             ]);
     }
 

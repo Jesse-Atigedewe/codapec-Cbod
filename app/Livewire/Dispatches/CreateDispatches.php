@@ -48,35 +48,35 @@ class CreateDispatches extends Component implements HasActions, HasSchemas
                     ->openable(),
 
                 // Item request select
-               Select::make('chemical_request_id')
-    ->label('Item Request')
-    ->options(
-        ChemicalRequest::query()
-            ->where('status', 'approved')
-            ->with(['chemical', 'dispatches'])
-            ->get()
-            ->mapWithKeys(fn($request) => [
-                $request->id => "Request #{$request->id} | "
-                    . $request->chemical->name
-                    . " | Requested: {$request->quantity} | "
-                    . "Dispatched: {$request->dispatched_quantity} | "
-                    . "Remaining: {$request->remaining_quantity}",
-            ])
-            ->toArray()
-    )
-    ->required()
-    ->searchable()
-    ->preload()
-    ->reactive()
-    ->afterStateUpdated(function ($state, callable $set) {
-        $request = ChemicalRequest::find($state);
-        if ($request) {
-            $set('region_id', $request->region_id);
-            $set('district_id', $request->district_id);
-            $set('region_display', $request->region_id);
-            $set('district_display', $request->district_id);
-        }
-    }),
+                Select::make('chemical_request_id')
+                    ->label('Item Request')
+                    ->options(
+                        ChemicalRequest::query()
+                            ->where('status', 'approved')
+                            ->with(['chemical', 'dispatches'])
+                            ->get()
+                            ->mapWithKeys(fn($request) => [
+                                $request->id => "Request #{$request->id} | "
+                                    . $request->chemical->name
+                                    . " | Requested: {$request->quantity} | "
+                                    . "Dispatched: {$request->dispatched_quantity} | "
+                                    . "Remaining: {$request->remaining_quantity}",
+                            ])
+                            ->toArray()
+                    )
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $request = ChemicalRequest::find($state);
+                        if ($request) {
+                            $set('region_id', $request->region_id);
+                            $set('district_id', $request->district_id);
+                            $set('region_display', $request->region_id);
+                            $set('district_display', $request->district_id);
+                        }
+                    }),
 
 
 
@@ -132,57 +132,57 @@ class CreateDispatches extends Component implements HasActions, HasSchemas
     }
 
 
-public function create(): void
-{
-    $data = $this->form->getState();
+    public function create(): void
+    {
+        $data = $this->form->getState();
 
-    $chemicalRequest = ChemicalRequest::findOrFail($data['chemical_request_id']);
+        $chemicalRequest = ChemicalRequest::findOrFail($data['chemical_request_id']);
 
-    $alreadyDispatched = $chemicalRequest->dispatched_quantity;
-    $newQuantity = (int) ($data['quantity'] ?? 0);
+        $alreadyDispatched = $chemicalRequest->dispatched_quantity;
+        $newQuantity = (int) ($data['quantity'] ?? 0);
 
-    // Validate
-    if (($alreadyDispatched + $newQuantity) > $chemicalRequest->quantity) {
-        Notification::make()
-            ->title("{$newQuantity} exceeds request limit of ({$chemicalRequest->quantity})")
-            ->danger()
-            ->send();
-        return;
+        // Validate
+        if (($alreadyDispatched + $newQuantity) > $chemicalRequest->quantity) {
+            Notification::make()
+                ->title("{$newQuantity} exceeds request limit of ({$chemicalRequest->quantity})")
+                ->danger()
+                ->send();
+            return;
+        }
+
+
+        // Create dispatch
+        $record = Dispatch::create([
+            ...$data,
+            'chemical_id'    => $chemicalRequest->chemical_id,
+            'user_id'        => Auth::id(),
+        ]);
+
+        $this->form->model($record)->saveRelationships();
+
+        // Refresh totals
+        $totalDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)->sum('quantity');
+
+        $remaining = max(0, $chemicalRequest->quantity - $totalDispatched);
+
+        if ($remaining === 0 && $chemicalRequest->status !== 'dispatched') {
+            $chemicalRequest->update(['status' => 'dispatched']);
+            Notification::make()
+                ->success()
+                ->title('Items fully dispatched')
+                ->send();
+        } else {
+            Notification::make()
+                ->success()
+                ->title('Dispatch created successfully')
+                ->body("Total dispatched: {$totalDispatched}. Remaining: {$remaining}.")
+                ->send();
+        }
+
+
+
+        $this->redirectRoute('dispatches.index');
     }
-
-   
-    // Create dispatch
-    $record = Dispatch::create([
-        ...$data,
-        'chemical_id'    => $chemicalRequest->chemical_id,
-        'user_id'        => Auth::id(),
-    ]);
-
-    $this->form->model($record)->saveRelationships();
-
-    // Refresh totals
-   $totalDispatched = Dispatch::where('chemical_request_id', $chemicalRequest->id)->sum('quantity');
- 
-$remaining = max(0, $chemicalRequest->quantity - $totalDispatched);
-
-if ($remaining === 0 && $chemicalRequest->status !== 'dispatched') {
-    $chemicalRequest->update(['status' => 'dispatched']);
-    Notification::make()
-        ->success()
-        ->title('Items fully dispatched')
-        ->send();
-}else{
-    Notification::make()
-        ->success()
-        ->title('Dispatch created successfully')
-        ->body("Total dispatched: {$totalDispatched}. Remaining: {$remaining}.")
-        ->send();
-}
-
-
-
-    $this->redirectRoute('dispatches.index');
-}
 
 
     public function render(): View

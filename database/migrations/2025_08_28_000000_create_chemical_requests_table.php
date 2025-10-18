@@ -10,6 +10,10 @@ return new class extends Migration
     {
         Schema::create('chemical_requests', function (Blueprint $table) {
             $table->id();
+            // $table->foreignId('request_id')
+            //     ->nullable()
+            //     ->constrained('requests')
+            //     ->cascadeOnDelete();
             $table->foreignId('region_id')->constrained()->cascadeOnDelete();
             $table->foreignId('district_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // requester

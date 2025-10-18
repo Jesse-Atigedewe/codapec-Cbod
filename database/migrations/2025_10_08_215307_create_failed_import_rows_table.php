@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //chemical type
-        Schema::create('chemical_types', function (Blueprint $table) {
+        Schema::create('failed_import_rows', function (Blueprint $table): void {
             $table->id();
-            $table->string('name')->unique();
+            $table->json('data');
+            $table->foreignId('import_id')->constrained()->cascadeOnDelete();
+            $table->text('validation_error')->nullable();
             $table->timestamps();
         });
-
     }
 
     /**
@@ -26,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-
-        Schema::dropIfExists('chemical_types');
+        Schema::dropIfExists('failed_import_rows');
     }
 };
-

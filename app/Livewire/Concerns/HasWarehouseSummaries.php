@@ -38,8 +38,8 @@ trait HasWarehouseSummaries
     {
         $rows = WarehouseStock::query()
             ->join('chemicals', 'warehouse_stocks.chemical_id', '=', 'chemicals.id')
-            ->select('chemicals.state', DB::raw(sprintf('SUM(warehouse_stocks.%s) as total', $metric)))
-            ->groupBy('chemicals.state')
+            ->select('chemicals.name', DB::raw(sprintf('SUM(warehouse_stocks.%s) as total', $metric)))
+         
             ->get();
 
         if ($rows->isEmpty()) {
@@ -47,7 +47,7 @@ trait HasWarehouseSummaries
         }
 
         $list = $rows
-            ->map(fn ($r) => ucfirst($r->state) . ': ' . (int) $r->total)
+            ->map(fn ($r) => ucfirst($r->name) . ': ' . (int) $r->total)
             ->join('<br/>');
 
         return new HtmlString($list);

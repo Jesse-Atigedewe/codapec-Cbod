@@ -55,6 +55,13 @@ use HasFactory;
     }
 
 
+    public function request()
+{
+    return $this->belongsTo(\App\Models\Request::class);
+}
+
+
+
 
 
 // ✅ How much has been dispatched

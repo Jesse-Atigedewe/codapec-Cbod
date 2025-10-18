@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Farmers;
 
+use App\Models\Cooperative;
 use App\Models\District;
 use App\Models\Farmer;
 use App\Models\Region;
@@ -43,6 +44,9 @@ class CreateFarmer extends Component implements HasActions, HasSchemas
                 })
                 ->required()
                 ->searchable(),
+                Select::make('cooperative_id')
+                ->label('Cooperative')
+                ->options(Cooperative::all()->pluck('name', 'id')),
                 TextInput::make('name'),
                 TextInput::make('contact_number')->tel(),
                 TextInput::make('farm_size')->numeric(),

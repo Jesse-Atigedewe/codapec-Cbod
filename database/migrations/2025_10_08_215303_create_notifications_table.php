@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //chemical type
-        Schema::create('chemical_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('type');
+            $table->morphs('notifiable');
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });
-
     }
 
     /**
@@ -26,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-
-        Schema::dropIfExists('chemical_types');
+        Schema::dropIfExists('notifications');
     }
 };
-

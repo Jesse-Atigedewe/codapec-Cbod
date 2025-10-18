@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('cooperatives', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('region_id')->constrained()->cascadeOnDelete();
-              $table->foreignId('district_id')->constrained()->cascadeOnDelete();
-        $table->string('name');
-        $table->string('leader_name');
-        $table->string('leader_contact');
-        $table->integer('number_of_members')->default(0);
+            $table->foreignId('region_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('district_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->string('registration_number')->nullable();
+            $table->string('name');
+            $table->string('leader_name')->nullable();
+            $table->string('leader_contact')->nullable();
             $table->timestamps();
         });
     }

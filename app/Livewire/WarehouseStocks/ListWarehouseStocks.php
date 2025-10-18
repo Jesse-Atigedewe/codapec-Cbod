@@ -54,8 +54,7 @@ class ListWarehouseStocks extends Component implements HasActions, HasSchemas, H
                     ->label('Chemical')
                     ->searchable(),
 
-                TextColumn::make('chemical.state')
-                    ->label('State'),
+               
 
                 TextColumn::make('quantity_available')
                     ->label('Remaining'),

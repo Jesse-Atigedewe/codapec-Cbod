@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\District;
+use App\Models\Region;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,6 +14,18 @@ class RegionSeeder extends Seeder
      */
     public function run(): void
     {
-        District::factory()->count(2)->create();
+         $regions = [
+            'BRONG-AHAFO',
+            'CENTRAL',
+            'EASTERN',
+            'ASHANTI',
+            'WESTERN-NORTH',
+            'VOLTA',
+            'WESTERN-SOUTH',
+        ];
+
+        foreach ($regions as $region) {
+            Region::firstOrCreate(['name' => $region]);
+        }
     }
 }

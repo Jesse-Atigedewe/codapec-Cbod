@@ -10,12 +10,12 @@ use App\Models\Region;
 use App\Models\Warehouse;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
-use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -57,6 +57,8 @@ class CreateChemicalRequest extends Component implements HasActions, HasSchemas
                     })
                     ->required()
                     ->searchable(),
+
+                    
                 Select::make('chemical_id')
                     ->label('Select Input')
                     ->required()

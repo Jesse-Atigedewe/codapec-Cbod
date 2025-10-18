@@ -26,6 +26,11 @@ class District extends Model
         return $this->hasMany(FarmerGroup::class);
     }
 
+    public function requests()
+{
+    return $this->hasMany(Request::class);
+}
+
     public function cooperatives()
     {
         return $this->hasMany(Cooperative::class);

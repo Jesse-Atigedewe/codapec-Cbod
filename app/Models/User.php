@@ -79,6 +79,11 @@ class User extends Authenticatable
         return $this->hasMany(Warehouse::class);
     }
 
+    public function requests()
+{
+    return $this->hasMany(Request::class);
+}
+
 
     public function hasRole(array|string $roles): bool
     {

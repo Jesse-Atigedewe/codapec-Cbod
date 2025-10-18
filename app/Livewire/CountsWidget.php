@@ -31,16 +31,7 @@ class CountsWidget extends StatsOverviewWidget
         $farmerGroupsCount = FarmerGroup::when($scope, fn($q) => $q->where($scope))->count();
         $cooperativesCount = Cooperative::when($scope, fn($q) => $q->where($scope))->count();
 
-        // Warehouse stock (only relevant for admin + codapecrep)
-        $totalAvailable = null;
-        if ($user->hasRole('admin')) {
-            $totalAvailable = DB::table('warehouse_stocks')->sum('quantity_available');
-        } elseif ($user->hasRole('codapecrep')) {
-            $totalAvailable = DB::table('warehouse_stocks')
-                ->where('user_id', $user->id)
-                ->whereIn('warehouse_id', $user->warehouses->pluck('id'))
-                ->sum('quantity_available');
-        }
+      
 
         // 🧩 Build stats dynamically
         $stats = [];
@@ -62,10 +53,7 @@ class CountsWidget extends StatsOverviewWidget
                 ->icon('heroicon-o-users')
                 ->color('primary');
 
-            $stats[] = Stat::make('Available Quantity', number_format((int)$totalAvailable))
-                ->description('Total available across warehouses')
-                ->icon('heroicon-o-cube')
-                ->color('success');
+
         }
 
         // District / Region level (dco, regional_manager, auditor)

@@ -10,12 +10,12 @@ class Cooperative extends Model
     use HasFactory;
 
     protected $fillable = [
-        'district_id',
         'region_id',
+        'district_id',
         'name',
+        'registration_number',
         'leader_name',
         'leader_contact',
-        'number_of_members'
     ];
 
     public function district()
@@ -30,5 +30,10 @@ class Cooperative extends Model
     public function farmerGroups()
     {
         return $this->hasMany(FarmerGroup::class);
+    }
+
+    public function farmers()
+    {
+        return $this->hasMany(Farmer::class);
     }
 }
