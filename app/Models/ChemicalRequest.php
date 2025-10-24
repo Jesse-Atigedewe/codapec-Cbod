@@ -15,6 +15,8 @@ use HasFactory;
         'region_id',
         'district_id',
         'user_id',
+        'request_id',
+        'request_id',
         'chemical_id',
         'haulage_company_id',
         'warehouse_rep_id',   

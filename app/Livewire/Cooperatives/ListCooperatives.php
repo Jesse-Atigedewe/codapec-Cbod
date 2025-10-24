@@ -54,9 +54,9 @@ class ListCooperatives extends Component implements HasActions, HasSchemas, HasT
                 CreateAction::make()
                 ->visible(auth()->user()->hasRole('admin'))
                 ->url(fn(): string => route('cooperatives.create')),
-                 Action::make('Distribute')
-                ->visible(auth()->user()->hasRole(['dco']))
-                ->url(fn (): string => route('dco.distribute.cooperatives')),
+                //  Action::make('Distribute')
+                // ->visible(auth()->user()->hasRole(['dco']))
+                // ->url(fn (): string => route('dco.distribute.cooperatives')),
                 ImportAction::make()->importer(\App\Filament\Imports\CooperativeImporter::class)
                 ->visible(auth()->user()->hasRole('admin'))
 

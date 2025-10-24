@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->foreignId('region_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('district_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
-            $table->string('location_name')->nullable(); // added field
+            $table->string('location_name')->nullable(); 
             $table->text('description')->nullable();
             $table->timestamps();
         });

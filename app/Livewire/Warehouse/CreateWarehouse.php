@@ -42,7 +42,6 @@ class CreateWarehouse extends Component implements HasActions, HasSchemas
                   Select::make('region_id')
                     ->label('Region')
                     ->options(Region::query()->pluck('name', 'id'))
-                    ->required()
                     ->searchable()
                     ->reactive()
                     ->afterStateUpdated(fn($state, callable $set) => $set('district_id', null)), // reset district on region change
@@ -54,7 +53,6 @@ class CreateWarehouse extends Component implements HasActions, HasSchemas
                         $regionId = $get('region_id');
                         return $regionId ? District::where('region_id', $regionId)->pluck('name', 'id') : [];
                     })
-                    ->required()
                     ->searchable(),
 
 
@@ -63,7 +61,7 @@ class CreateWarehouse extends Component implements HasActions, HasSchemas
                     ->required()
                     ->maxLength(255),
 
-                TextInput::make('location')
+                TextInput::make('location_name')
                     ->label('Location')
                     ->placeholder('Enter location')
                     ->maxLength(255),

@@ -21,12 +21,33 @@
         <flux:navlist variant="outline">
     <flux:navlist.group :heading="__('Menu')" class="grid">
         @foreach(config('navitems')[auth()->user()->role] ?? [] as $item)
+
+        @php
+            $badge = null;
+
+            if (!empty($item['badge'])) {
+                switch ($item['badge']) {
+                    case 'unread_reports':
+                        $badge = \App\Models\Comment::where('marked_as_read', false)->count();
+                        break;
+                    // you can add more badge types here later
+                }
+            }
+        @endphp
+
             <flux:navlist.item 
                 :icon="$item['icon']" 
                 :href="$item['route'] ? route($item['route']) : '#'" 
                 :current="$item['route'] ? request()->routeIs($item['route'].'*') : false" 
                 wire:navigate>
-                {{ __($item['label']) }}
+                 <div class="flex items-center justify-between w-full">
+                <span>{{ __($item['label']) }}</span>
+                @if($badge)
+                    <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-600 text-white">
+                        {{ $badge }}
+                    </span>
+                @endif
+            </div>
             </flux:navlist.item>
         @endforeach
     </flux:navlist.group>

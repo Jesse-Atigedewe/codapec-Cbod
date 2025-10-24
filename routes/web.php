@@ -38,6 +38,7 @@ use App\Livewire\Regions\ListRegions;
          use App\Livewire\Cooperatives\CreateCooperative;
         use App\Livewire\Cooperatives\EditCooperative;
         use App\Livewire\Cooperatives\ListCooperatives;
+use App\Livewire\Reports\ListComments;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -97,6 +98,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::middleware(['auth', 'role:admin'])->group(function () {
+      //comments or Reports
+        Route::get('/reports', ListComments::class)->name('reports.list');
+
         Route::get('/warehouses', ListWarehouse::class)->name('warehouses.list');
         // Warehouse CRUD routes for testing
         Route::get('/warehouses/create', CreateWarehouse::class)->name('warehouse.create');

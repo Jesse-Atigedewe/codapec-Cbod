@@ -35,6 +35,9 @@ class DistributeToFarmerGroups extends Component implements HasActions, HasSchem
         return $schema
             ->components([
                 // Farmer group select
+
+                Hidden::make('request_id')->dehydrated(),
+
                 Select::make('farmer_group_id')
                     ->label('Farmer Group')
                     ->options(fn () => FarmerGroup::pluck('name', 'id')->toArray())

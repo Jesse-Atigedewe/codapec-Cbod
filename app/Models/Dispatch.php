@@ -23,6 +23,7 @@ class Dispatch extends Model
           'chemical_id',
           'status',
           'dispatched_at',
+          'request_id',
           'delivered_at',
           'dco_approved',
           'dco_approved_by',
@@ -46,6 +47,11 @@ class Dispatch extends Model
      ];
 
 
+     public function request()
+    {
+        return $this->belongsTo(Request::class);
+    }
+
 
      public function chemicalRequest()
      {
@@ -61,6 +67,7 @@ class Dispatch extends Model
      }
      public function district()
      {
+          
           return $this->belongsTo(District::class);
      }
      public function region()
@@ -71,15 +78,20 @@ class Dispatch extends Model
      {
           return $this->belongsTo(Chemical::class);
      }
+
+     public function comments(){
+          return $this->hasMany(Comment::class);
+     }
+
      public function dcoApprover()
      {
           return $this->belongsTo(User::class, 'dco_approved_by');
      }
-     public function auditorApprover()
+     public function auditorApproveBy()
      {
           return $this->belongsTo(User::class, 'auditor_approved_by');
      }
-     public function regionalManagerApprover()
+     public function regionalManagerApproveBy()
      {
           return $this->belongsTo(User::class, 'regional_manager_approved_by');
      }

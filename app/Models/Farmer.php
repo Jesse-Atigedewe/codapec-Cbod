@@ -50,6 +50,7 @@ class Farmer extends Model
         return $this->belongsTo(Cooperative::class);
     }
 
+
      public function requests()
     {
         return $this->belongsToMany(Request::class, 'request_farmers')

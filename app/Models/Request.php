@@ -37,6 +37,17 @@ class Request extends Model
         return $this->belongsTo(District::class);
     }
 
+    public function dispatches()
+{
+    return $this->hasMany(Dispatch::class);
+}
+
+
+ public function dcoreceivedchemical(){
+    return $this->belongsTo(DcoReceivedChemicals::class);
+ }
+
+
     public function cooperative()
     {
         return $this->belongsTo(Cooperative::class);
@@ -51,9 +62,12 @@ public function request()
         return $this->belongsTo(Chemical::class);
     }
 
+
+
+
     public function farmers()
     {
-        return $this->belongsToMany(Farmer::class, 'request_farmers')
+        return $this->belongsToMany(Farmer::class, 'request_farmers',)
             ->withPivot('allocated_quantity');
     }
 
@@ -124,16 +138,19 @@ public function request()
 public function createChemicalRequest(int $warehouseId, int $haulageCompanyId): void
 {
     // Get related data
-    $user = $this->user; // requester
+    $user = $this->user; // user who created the request;
     $regionId = $user->region_id;
     $districtId = $user->district_id;
     $warehouse = \App\Models\Warehouse::find($warehouseId);
 
     // Safety checks
-    if (! $warehouse || ! $regionId || ! $districtId || ! $this->chemical_id) {
+    if (! $warehouse || !$warehouse->user_id || ! $regionId || ! $districtId || ! $this->chemical_id) {
         Log::warning("Cannot create ChemicalRequest for Request {$this->id} due to missing info.");
         return;
     }
+
+
+
 
     // Calculate total quantity allocated to farmers
     $totalAllocated = $this->farmers()->sum('request_farmers.allocated_quantity');
@@ -145,7 +162,7 @@ public function createChemicalRequest(int $warehouseId, int $haulageCompanyId): 
     }
 
     // Create Chemical Request
-    \App\Models\ChemicalRequest::create([
+        ChemicalRequest::create([
         'request_id' => $this->id,
         'region_id' => $regionId,
         'district_id' => $districtId,

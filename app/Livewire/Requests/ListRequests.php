@@ -153,7 +153,7 @@ class ListRequests extends Component implements HasActions, HasSchemas, HasTable
                         'rejected' => 'rejected',
                     ])
                     ->label('Status')
-                    ->default('pending')
+                    // ->default('pending')
             ])
             ->headerActions([
                 // Add any header actions here
@@ -191,7 +191,7 @@ class ListRequests extends Component implements HasActions, HasSchemas, HasTable
                     ->action(fn(Request $record) => $record->rejectedByRegionalManager()),
                     //admin apporve
                     Action::make('admin_approve')
-    ->label('Admin Approve')
+    ->label('Evacuate')
     ->icon('heroicon-o-check-circle')
     ->visible(fn(Request $record) =>
                     
@@ -213,6 +213,8 @@ class ListRequests extends Component implements HasActions, HasSchemas, HasTable
     ->requiresConfirmation()
     ->action(function (Request $record, array $data) {
         // Update approval
+
+       
         $record->admin_approved = true;
         $record->status = 'approved';
         $record->save();
@@ -222,6 +224,7 @@ class ListRequests extends Component implements HasActions, HasSchemas, HasTable
             $data['warehouse_id'],
             $data['haulage_company_id']
         );
+        
 
         Notification::make()
             ->title('Request Approved')

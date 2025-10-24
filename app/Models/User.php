@@ -84,6 +84,10 @@ class User extends Authenticatable
     return $this->hasMany(Request::class);
 }
 
+public function comments(){
+    return $this->hasMany(Comment::class);
+}
+
 
     public function hasRole(array|string $roles): bool
     {

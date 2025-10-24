@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dispatches;
 
+use App\Models\Comment;
 use App\Models\DcoReceivedChemicals;
 use Livewire\Component;
 use App\Models\Dispatch;
@@ -15,6 +16,10 @@ class ViewDispatch extends Component
     // when viewing all dispatches for a chemical request
     public ?EloquentCollection $dispatches = null;
 
+    //comment
+    
+    public string $commentText = '';
+
     /**
      * Mount the component with a specific dispatch record.
      */
@@ -22,7 +27,7 @@ class ViewDispatch extends Component
     {
         if ($byChemicalRequest) {
             // $record is expected to be chemical_request_id
-            $this->dispatches = Dispatch::with(['chemical', 'chemicalRequest'])
+            $this->dispatches = Dispatch::with(['chemical', 'chemicalRequest','comments'])
                 ->where('chemical_request_id', $record)
                 ->get();
 
@@ -34,7 +39,7 @@ class ViewDispatch extends Component
         }
 
         // single dispatch view
-        $this->dispatch = Dispatch::with(['chemicalRequest', 'chemical'])
+        $this->dispatch = Dispatch::with(['chemicalRequest', 'chemical','comments'])
             ->findOrFail($record);
 
     // no legacy drivers JSON: single-driver dispatch columns are used
@@ -55,6 +60,8 @@ class ViewDispatch extends Component
             return;
         }
 
+      
+
         // Only allow if the trip for this dispatch is complete
         if ($dispatch->dco_approved) {
             Notification::make()
@@ -64,6 +71,7 @@ class ViewDispatch extends Component
                 ->send();
             return;
         }
+    
 
         $dispatch->dco_approved = !$dispatch->dco_approved;
         $dispatch->dco_approved_by = $dispatch->dco_approved ? Auth::id() : null;
@@ -78,6 +86,7 @@ class ViewDispatch extends Component
                 [
                     'user_id' => Auth::id(),
                     'district_id' => $dispatch->district_id,
+                    'request_id'=>$dispatch->request_id,
                     // 'region_id' => $dispatch->region_id,
                     'quantity_received' => $totalQuantity,
                     'quantity_distributed' => 0,
@@ -100,13 +109,10 @@ class ViewDispatch extends Component
     /**
      * Toggle Auditor approval.
      */
-    public function toggleAuditor(?int $dispatchId = null): void
+    public function toggleAuditorRegionalRM(?int $dispatchId = null): void
     {
-        if (Auth::user()->role !== 'auditor') {
-            return;
-        }
-
-        $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
+        if (Auth::user()->role === 'auditor') {
+             $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
         if (!$dispatch) {
             return;
         }
@@ -129,20 +135,9 @@ class ViewDispatch extends Component
             ->success()
             ->title("Request Verified")
             ->send();
-    }
-
-    /**
-     * Toggle Regional Manager approval.
-     */
-
-        // Update received chemicals if approved
-    public function toggleRm(?int $dispatchId = null): void
-    {
-        if (Auth::user()->role !== 'regional_manager') {
-            return;
         }
-
-        $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
+        elseif(Auth::user()->role === 'regional_manager'){
+            $dispatch = $dispatchId ? Dispatch::find($dispatchId) : $this->dispatch;
         if (!$dispatch) {
             return;
         }
@@ -164,7 +159,41 @@ class ViewDispatch extends Component
             ->success()
             ->title("Request Confirmed")
             ->send();
+        }else{
+            Notification::make()
+            ->success()
+            ->title("Request Confirmed")
+            // ->color('danger')
+            ->send();
+        }
+
+       
     }
+
+
+
+public function saveComment($dispatchId)
+{
+    $this->validate([
+        'commentText' => 'required|string|max:500',
+    ]);
+
+    Comment::create([
+        'user_id' => Auth::id(),
+        'dispatch_id' => $dispatchId,
+        'description' => $this->commentText,
+    ]);
+
+    $this->commentText = '';
+
+    Notification::make()
+        ->success()
+        ->title('Comment Added')
+        ->send();
+
+}
+
+ 
 
 
 

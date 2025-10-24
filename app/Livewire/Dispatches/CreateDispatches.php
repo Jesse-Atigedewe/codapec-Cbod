@@ -135,8 +135,9 @@ class CreateDispatches extends Component implements HasActions, HasSchemas
     public function create(): void
     {
         $data = $this->form->getState();
-
+        
         $chemicalRequest = ChemicalRequest::findOrFail($data['chemical_request_id']);
+        
 
         $alreadyDispatched = $chemicalRequest->dispatched_quantity;
         $newQuantity = (int) ($data['quantity'] ?? 0);
@@ -150,11 +151,11 @@ class CreateDispatches extends Component implements HasActions, HasSchemas
             return;
         }
 
-
         // Create dispatch
         $record = Dispatch::create([
             ...$data,
             'chemical_id'    => $chemicalRequest->chemical_id,
+            'request_id'=>  $chemicalRequest->request_id,
             'user_id'        => Auth::id(),
         ]);
 
