@@ -15,15 +15,23 @@ class Region extends Model
     {
         return $this->hasMany(District::class);
     }
+    
     public function warehouses()
     {
         return $this->hasMany(Warehouse::class);
     }
 
+    public function requests()
+{
+    return $this->hasMany(Request::class);
+}
+
     public function users()
     {
         return $this->hasMany(User::class);
     }
+
+    
 
     
 }

@@ -15,6 +15,8 @@ use HasFactory;
         'region_id',
         'district_id',
         'user_id',
+        'request_id',
+        'request_id',
         'chemical_id',
         'haulage_company_id',
         'warehouse_rep_id',   
@@ -53,6 +55,13 @@ use HasFactory;
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
+
+
+    public function request()
+{
+    return $this->belongsTo(\App\Models\Request::class);
+}
+
 
 
 

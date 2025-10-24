@@ -41,25 +41,6 @@ class CreateChemical extends Component implements HasActions, HasSchemas
                     ->searchable()
                     ->required(),
 
-                Select::make('state')
-                    ->label('Physical State')
-                    ->options([
-                        'granular' => 'Granular',
-                        'solid'    => 'Solid',
-                        'liquid'   => 'Liquid',
-                        'powder'   => 'Powder',
-                    ])
-                    ->required()
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, $set) {
-                        // map state -> default unit
-                        if (in_array($state, ['granular', 'solid', 'powder'])) {
-                            $set('unit', 'kg');
-                        } elseif ($state === 'liquid') {
-                            $set('unit', 'liters');
-                        }
-                    }),
-
                 Select::make('unit')
                     ->label('Unit of Measure')
                     ->options([
@@ -69,10 +50,7 @@ class CreateChemical extends Component implements HasActions, HasSchemas
                     ])
                     ->default('liters')
                     ->required()
-                    ->reactive()
-                    ->afterStateHydrated(function ($state, $set, $get) {
-                        // noop here; unit will be adjusted when state changes via the state select
-                    }),
+                    ->reactive(),
             ])
             ->statePath('data')
             ->model(Chemical::class);

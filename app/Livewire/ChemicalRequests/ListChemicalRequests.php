@@ -57,10 +57,10 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
                 TextColumn::make('status')->badge(),
             ])
             ->headerActions([
-                CreateAction::make()
-                    ->label('Evacuate Item')
-                    ->visible(fn() => Auth::user()->role === 'admin')
-                    ->url(fn(): string => route('chemical_requests.create')),
+                // CreateAction::make()
+                //     ->label('Evacuate Item')
+                //     ->visible(fn() => Auth::user()->role === 'admin')
+                //     ->url(fn(): string => route('chemical_requests.create')),
             ])
             ->recordActions([
                 DeleteAction::make()->visible(fn() => Auth::user()->role === 'admin'),
@@ -137,25 +137,19 @@ class ListChemicalRequests extends Component implements HasActions, HasSchemas, 
                                     }
 
                                     $deducted = min($quantityToDeduct, $available);
-                                    $lot->update(['quantity_available' => $available - $deducted]);
-                                    
-                                    $quantityToDeduct -= $deducted;
-                                }
-
-                                if ($quantityToDeduct === 0) {
+                                    $fullydeducted = $available - $deducted;
+                                    $lot->update(['quantity_available' => $fullydeducted]);
                                     $record->update([
                                         'status'       => 'approved',
                                     ]);
-
                                     Notification::make()
                                         ->success()
                                         ->title('Request Approved')
                                         ->body('The request has been fully approved and stock updated.')
                                         ->send();
-                                } else {
-                                    // rollback if not enough stock
-                                    throw new \Exception('Insufficient stock to fully fulfill request');
                                 }
+
+                              
                             });
                         } catch (\Exception $e) {
                             Notification::make()

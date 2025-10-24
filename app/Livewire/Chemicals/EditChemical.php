@@ -43,24 +43,7 @@ class EditChemical extends Component implements HasActions, HasSchemas
                 ->searchable()
                 ->required(),
 
-            Select::make('state')
-                ->label('Physical State')
-                ->options([
-                    'granular' => 'Granular',
-                    'solid'    => 'Solid',
-                    'liquid'   => 'Liquid',
-                    'powder'   => 'Powder',
-                ])
-                ->required()
-                ->reactive()
-                ->afterStateUpdated(function ($state, $set) {
-                    if (in_array($state, ['granular', 'solid', 'powder'])) {
-                        $set('unit', 'kg');
-                    } elseif ($state === 'liquid') {
-                        $set('unit', 'liters');
-                    }
-                }),
-
+            
             Select::make('unit')
                 ->label('Unit of Measure')
                 ->options([

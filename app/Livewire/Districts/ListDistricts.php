@@ -38,16 +38,16 @@ class ListDistricts extends Component implements HasActions, HasSchemas, HasTabl
                 //
             ])
             ->headerActions(actions: [
-                CreateAction::make()->url(fn(): string => route('districts.create')),
+                // CreateAction::make()->url(fn(): string => route('districts.create')),
             ])
             ->recordActions([
-                DeleteAction::make(),
-                EditAction::make()->url(fn (District $record): string => route('districts.edit', $record)),
+                // DeleteAction::make(),
+                // EditAction::make()->url(fn (District $record): string => route('districts.edit', $record)),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                // BulkActionGroup::make([
+                //     DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 

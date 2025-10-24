@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Chemicals;
 
+use App\Filament\Imports\ChemicalImporter;
 use App\Models\Chemical;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -10,6 +11,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ImportAction;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
@@ -40,9 +42,8 @@ class ListChemicals extends Component implements HasActions, HasSchemas, HasTabl
                 ->label('Input Type')
                 ->sortable()
                 ->searchable(),
-
-            TextColumn::make('state')
-                ->label('Input State')
+            TextColumn::make('formula_quantity')
+                ->label('Quantity to multiply')
                 ->sortable()
                 ->searchable(),
 
@@ -55,6 +56,10 @@ class ListChemicals extends Component implements HasActions, HasSchemas, HasTabl
             CreateAction::make()
             ->url(fn(): string => route('chemicals.create'))
             ->label('Add New Input'),
+
+            ImportAction::make()
+                    ->importer(ChemicalImporter::class)
+                    ->label('Import Inputs')
         ])
         ->recordActions([
             DeleteAction::make(),

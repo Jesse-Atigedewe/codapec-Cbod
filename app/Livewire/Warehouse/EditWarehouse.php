@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Warehouse;
 
+use App\Models\District;
+use App\Models\Region;
 use App\Models\User;
 use App\Models\Warehouse;
 use Filament\Forms\Components\Select;
@@ -38,15 +40,31 @@ class EditWarehouse extends Component implements HasActions, HasSchemas
                 Select::make('user_id')
                     ->label('codapec rep')
                      ->options(User::where('role', 'codapecrep')->pluck('name', 'id'))
-
                     ->required(),
+                
+                      Select::make('region_id')
+                    ->label('Region')
+                    ->options(Region::query()->pluck('name', 'id'))
+                    ->searchable()
+                    ->reactive()
+                    ->afterStateUpdated(fn($state, callable $set) => $set('district_id', null)), // reset district on region change
+
+                // District select, filtered by region
+                Select::make('district_id')
+                    ->label('District')
+                    ->options(function (callable $get) {
+                        $regionId = $get('region_id');
+                        return $regionId ? District::where('region_id', $regionId)->pluck('name', 'id') : [];
+                    })
+                    ->searchable(),
+
 
                 TextInput::make('name')
                     ->label('Warehouse Name')
                     ->required()
                     ->maxLength(255),
 
-                TextInput::make('location')
+                TextInput::make('location_name')
                     ->label('Location')
                     ->placeholder('Enter location')
                     ->maxLength(255),

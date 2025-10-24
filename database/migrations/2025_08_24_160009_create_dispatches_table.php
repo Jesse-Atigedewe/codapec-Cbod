@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('region_id')->constrained()->cascadeOnDelete();
             $table->foreignId('district_id')->constrained()->cascadeOnDelete();
             $table->foreignId('chemical_request_id')->constrained()->cascadeOnDelete();
+               $table->foreignId('request_id')->nullable()->constrained('requests') 
+        ->nullOnDelete();
             $table->foreignId('chemical_id')->constrained()->cascadeOnDelete();
               $table->string('driver_name')->nullable()->after('chemical_id');
             $table->string('driver_phone')->nullable()->after('driver_name');

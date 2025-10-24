@@ -6,6 +6,7 @@ class DcoReceivedChemicals extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'request_id',
         'dispatch_id',
         'user_id',
         'district_id',
@@ -20,4 +21,9 @@ class DcoReceivedChemicals extends Model
     public function user() { return $this->belongsTo(User::class); }
     public function district() { return $this->belongsTo(District::class); }
     public function region() { return $this->belongsTo(Region::class); }
+
+      public function request()
+    {
+        return $this->belongsTo(Request::class);
+    }
 }

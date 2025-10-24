@@ -195,6 +195,7 @@ class EditDispatch extends Component implements HasActions, HasSchemas
             ],
             [
                 'user_id' => $this->record->user_id,
+                'request_id'=>$this->record->request_id,
                 'district_id' => $this->record->district_id,
                 'region_id' => $this->record->region_id,
                 'quantity_received' => $totalQuantity,

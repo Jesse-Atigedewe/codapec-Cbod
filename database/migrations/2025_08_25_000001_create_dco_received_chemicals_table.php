@@ -8,6 +8,7 @@ return new class extends Migration {
     {
         Schema::create('dco_received_chemicals', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('request_id')->constrained()->cascadeOnDelete();
             $table->foreignId('dispatch_id')->constrained('dispatches')->cascadeOnDelete();
             // dco that approved the distribution
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();

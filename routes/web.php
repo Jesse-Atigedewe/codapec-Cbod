@@ -38,6 +38,7 @@ use App\Livewire\Regions\ListRegions;
          use App\Livewire\Cooperatives\CreateCooperative;
         use App\Livewire\Cooperatives\EditCooperative;
         use App\Livewire\Cooperatives\ListCooperatives;
+use App\Livewire\Reports\ListComments;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -64,9 +65,13 @@ Route::middleware(['auth'])->group(function () {
 
       
     });
-    Route::middleware(['auth', 'role:admin,codapecrep,dco,regional_manager,auditor'])->group(function () {
-    Route::get('/dispatches/{record}/info', \App\Livewire\Dispatches\ViewDispatch::class)
-        ->name('dispatches.info');
+
+    //regional manager,dco and admin routes 
+       Route::middleware(['auth', 'role:regional_manager,dco,admin'])->group(function () {
+  Route::get('/requests', \App\Livewire\Requests\ListRequests::class)->name('requests.index');
+           Route::get('/requests/{record}', \App\Livewire\Requests\ViewRequest::class)->name('requests.view');
+
+      
     });
     
     Route::middleware(['auth', 'role:admin,codapecrep,dco,regional_manager,auditor'])->group(function () {
@@ -77,6 +82,9 @@ Route::middleware(['auth'])->group(function () {
         //get details of a farmer group members
         Route::get('/farmer-groups/{record}/member', \App\Livewire\Distribution\ViewFarmerGroupMember::class)
         ->name('listfarmergroupmember');
+
+            Route::get('/dispatches/{record}/info', \App\Livewire\Dispatches\ViewDispatch::class)
+        ->name('dispatches.info');
 
          Route::get('/farmer/{record}/member', \App\Livewire\Distribution\ViewFarmerMember::class)
         ->name('listfarmermember');
@@ -90,6 +98,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::middleware(['auth', 'role:admin'])->group(function () {
+      //comments or Reports
+        Route::get('/reports', ListComments::class)->name('reports.list');
+
         Route::get('/warehouses', ListWarehouse::class)->name('warehouses.list');
         // Warehouse CRUD routes for testing
         Route::get('/warehouses/create', CreateWarehouse::class)->name('warehouse.create');
@@ -138,8 +149,7 @@ Route::middleware(['auth'])->group(function () {
         //   Route::get('/cooperatives', ListCooperatives::class)->name('cooperatives.index');
           Route::get('/cooperatives/create', CreateCooperative::class)->name('cooperatives.create');
           Route::get('/cooperatives/{record}/edit', EditCooperative::class)->name('cooperatives.edit');
-          
-       
+
     });
 
     Route::middleware(['auth', 'role:codapecrep'])->group(function () {
@@ -165,7 +175,8 @@ Route::middleware(['auth'])->group(function () {
           Route::get('/distribute/farmer-groups', \App\Livewire\DcoDistributions\DistributeToFarmerGroups::class)->name('dco.distribute.farmer_groups');
           Route::get('/distribute/cooperatives', \App\Livewire\DcoDistributions\DistributeToCooperatives::class)->name('dco.distribute.cooperatives');
           Route::get('/dco/distributions', \App\Livewire\DcoDistribution\ListDcoDistributions::class)->name('dco.distributions.index');
-
+        //request
+          Route::get('/request/create', \App\Livewire\Requests\CreateRequests::class)->name('requests.create');
         });
 
     Route::middleware(['auth', 'role:auditor'])->group(function () {
@@ -175,7 +186,9 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['auth', 'role:regional_manager'])->group(function () {
-          // Regional manager approves and triggers DCO received record
+      // Route::get('/regional-manager/requests', \App\Livewire\Requests\ListRequests::class)->name('requests.index');
+      // Route::get('/regional-manager/requests/{record}', \App\Livewire\Requests\ViewRequest::class)->name('requests.view');
+      // Regional manager approves and triggers DCO received record
           Route::get('/regional-manager/dispatches', \App\Livewire\Dispatches\ListDispatches::class)->name('rm.dispatches.index');
         //   Route::get('/dispatches/{record}/edit', \App\Livewire\Dispatches\EditDispatch::class)->name('rm.dispatches.edit');
     });
